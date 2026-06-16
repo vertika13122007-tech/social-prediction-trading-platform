@@ -1,4 +1,5 @@
 const bcrypt = require('bcryptjs');
+const jwt = require("jsonwebtoken");
 
 const User = require("../../db/schemas/User");
 const OTP = require("../../db/schemas/OTP");
@@ -85,9 +86,9 @@ const verifyOTP = async (req,resp) => {
         const user = await User.create({
             name: otpRecord.name,
             email: otpRecord.email,
-            password: otpRecord.hashPassword
+            password: hashPassword
         });
-
+        
         await OTP.deleteOne({_id : otpRecord._id});
 
         return resp.status(201).json({
@@ -103,4 +104,57 @@ const verifyOTP = async (req,resp) => {
     }
 };
 
-module.exports = {registerUser,verifyOTP};
+
+const loginUser = async (req,resp) => {
+    try{
+        const {email,password} = req.body;
+
+        if( !email || !password ){
+            return resp.status(400).json({
+                message:"Email and password is required"
+            });
+        }
+
+        const userRecord = await User.findOne({email});
+
+        if( !userRecord ){
+            return resp.status(404).json({
+                message:"User not found"
+            });
+        }
+        console.log("Entered password:",password);
+        console.log("Stored password:",userRecord.password);
+        console.log("Usesr Record:",userRecord);
+
+        const isMatch = await bcrypt.compare(password,userRecord.password);
+
+        if( !isMatch ){
+            return resp.status(401).json({
+                message:"Password is incorrect"
+            });
+        }
+
+        const token = jwt.sign({
+                id: userRecord._id,
+                email: userRecord.email
+            },
+            process.env.JWT_SECRET,
+            {
+                expiresIn: "2d"
+            }
+        );
+
+        return resp.status(200).json({
+            message:"Login successful",
+            token
+        });
+
+    }catch(error){
+        console.error(error);
+        return resp.status(501).json({
+            message:"Login failed"
+        });
+    }
+}
+
+module.exports = {registerUser,verifyOTP, loginUser};

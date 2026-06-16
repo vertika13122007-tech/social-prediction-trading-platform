@@ -7,6 +7,7 @@ const authRoutes = require("./src/routes/authroute");
 const app = express();
 
 connectDB();
+
 const User = require("./db/schemas/User");
 
 app.use(express.json());

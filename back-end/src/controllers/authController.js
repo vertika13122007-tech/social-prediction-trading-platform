@@ -5,6 +5,7 @@ const User = require("../../db/schemas/User");
 const OTP = require("../../db/schemas/OTP");
 const generateOTP = require("../utils/generateOTP");
 const sendOTPEmail = require("../services/emailService");
+const Transcations = require("../../db/schemas/Transcation");
 
 const registerUser = async (req,resp) =>{
     try{
@@ -88,6 +89,13 @@ const verifyOTP = async (req,resp) => {
             email: otpRecord.email,
             password: hashPassword
         });
+
+        await Transcations.create({
+            userId:user._id,
+            type:"CREDIT",
+            amount:1000,
+            description:"Wlcome bonus"
+        });
         
         await OTP.deleteOne({_id : otpRecord._id});
 
@@ -122,9 +130,6 @@ const loginUser = async (req,resp) => {
                 message:"User not found"
             });
         }
-        console.log("Entered password:",password);
-        console.log("Stored password:",userRecord.password);
-        console.log("Usesr Record:",userRecord);
 
         const isMatch = await bcrypt.compare(password,userRecord.password);
 

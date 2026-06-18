@@ -1,5 +1,5 @@
 const User = require("../../db/schemas/User");
-const Transactions = require("../../db/schemas/Transcation");
+const Transactions = require("../../db/schemas/Transaction");
 
 const getWallet = async (req,resp) => {
     try{
@@ -15,7 +15,7 @@ const getWallet = async (req,resp) => {
     }
 };
 
-const getTranscations = async (req,resp) => {
+const getTransactions = async (req,resp) => {
     try{
         const transactions = await Transactions.find({
                 userId: req.user.id
@@ -34,4 +34,4 @@ const getTranscations = async (req,resp) => {
     }
 }
 
-module.exports = {getWallet,getTranscations};
+module.exports = {getWallet,getTransactions};

@@ -5,7 +5,8 @@ const User = require("../../db/schemas/User");
 const OTP = require("../../db/schemas/OTP");
 const generateOTP = require("../utils/generateOTP");
 const sendOTPEmail = require("../services/emailService");
-const Transcations = require("../../db/schemas/Transcation");
+const Transactions = require("../../db/schemas/Transaction");
+const walletUtils = require("../utils/walletUtils")
 
 const registerUser = async (req,resp) =>{
     try{
@@ -90,12 +91,12 @@ const verifyOTP = async (req,resp) => {
             password: hashPassword
         });
 
-        await Transcations.create({
-            userId:user._id,
-            type:"CREDIT",
-            amount:1000,
-            description:"Wlcome bonus"
-        });
+        await walletUtils.creditWallet(
+            user._id,
+            1000,
+            "CREDIT",
+            "Welcome bonus"
+        );
         
         await OTP.deleteOne({_id : otpRecord._id});
 

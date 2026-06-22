@@ -4,6 +4,7 @@ const express = require('express');
 const connectDB = require("./db/config");
 const authRoutes = require("./src/routes/authroute");
 const walletRoute = require("./src/routes/walletroute");
+const marketRoute = require("./src/routes/marketRoute");
 
 const app = express();
 
@@ -14,6 +15,7 @@ const User = require("./db/schemas/User");
 app.use(express.json());
 app.use("/api/auth",authRoutes);
 app.use("/api/wallet",walletRoute);
+app.use("/api/markets",marketRoute);
 
 app.get("/",(req,resp) => {
     resp.send("Backend is working...");

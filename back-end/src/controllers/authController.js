@@ -142,6 +142,7 @@ const loginUser = async (req,resp) => {
 
         const token = jwt.sign({
                 id: userRecord._id,
+                role: userRecord.role,
                 email: userRecord.email
             },
             process.env.JWT_SECRET,

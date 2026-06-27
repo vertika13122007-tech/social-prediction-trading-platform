@@ -58,7 +58,8 @@ const buyShares = async (req , resp ) => {
                 marketId,
                 side,
                 shares,
-                averageBuyPrice: sharePrice
+                averageBuyPrice: sharePrice,
+                createdAt: new Date()
             });
 
         } else {

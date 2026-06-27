@@ -1,4 +1,6 @@
 const Market = require("../../db/schemas/Market");
+const Position = require("../../db/schemas/Position");
+const walletUtils = require("../utils/walletUtils");
 
 const createMarket = async (req, res) => {
     try {
@@ -79,8 +81,190 @@ const getMarketById = async (req, res) => {
     }
 };
 
+const closeMarket = async ( req, resp ) => {
+    try{
+
+        const market = await Market.findById(req.params.id);
+
+        if (!market) {
+            return resp.status(404).json({
+                message: "Market not found."
+            });
+        }
+
+        if( market.status !== "OPEN" ){
+            return resp.status(400).json({
+                message:"Market is already closed or settled."
+            })
+        }
+
+        market.status = "CLOSED";
+
+        await market.save();
+
+        return resp.status(200).json({
+            message:"Market closed successfully",
+            market
+        });
+
+    }catch (error) {
+        console.error(error);
+
+        return resp.status(500).json({
+            message: "Failed to close the market."
+        });
+    }
+}
+
+const declareWinner = async ( req, resp ) =>{
+    try{
+
+        const market = await Market.findById(req.params.id);
+
+        if (!market) {
+            return resp.status(404).json({
+                message: "Market not found."
+            });
+        }
+
+        if( market.status !== "CLOSED" ){
+            return resp.status(400).json({
+                message:"Market must be closed before declaring a winner."
+            })
+        }
+
+        const { winningSide } = req.body;
+
+        if ( winningSide !== "YES" && winningSide !== "NO"){
+            return resp.status(400).json({
+                message:"Invalid winning Side."
+            })
+        }
+
+        if( market.winningSide !== null ){
+            return resp.status(400).json({
+                message:"Winner cannot be redeclared."
+            })
+        }
+        
+        market.winningSide = winningSide;
+
+        await market.save();
+
+        return resp.status(200).json({
+            message:"Winner declared successfully",
+            market
+        });
+
+    }catch(error){
+        console.error(error);
+
+        return resp.status(500).json({
+            message:"Failed to declare the market"
+        })
+    }
+}
+
+const settleMarket = async (req,resp) =>{
+    try{
+
+        const market = await Market.findById(req.params.id);
+
+        if (!market) {
+            return resp.status(404).json({
+                message: "Market not found."
+            });
+        }
+
+        if ( market.status === "SETTLED"){
+            return resp.status(400).json({
+                message: "Market has already been settled."
+            });
+        }
+
+        if ( market.winningSide === null ){
+            return resp.status(400).json({
+                message:"Winner has not be declared yet, so market cannot settle the market."
+            })
+        }
+        
+        if( market.status !== "CLOSED" ){
+            return resp.status(400).json({
+                message:"Market must be closed before settling the market."
+            })
+        }
+
+        const settlementTime = new Date();
+
+        const positions = await Position.find({
+            marketId: market._id,
+        })
+
+        for( const position of positions){
+
+            if( position.side === market.winningSide){
+
+                const WINNING_SHARE_VALUE = 10
+
+                const payout = position.shares * WINNING_SHARE_VALUE;
+
+                const investedAmount = position.shares*position.averageBuyPrice;
+
+                const profit = payout - investedAmount
+
+                await walletUtils.creditWallet(
+                            position.userId,
+                            payout,
+                            "CREDIT",
+                            `Settlement payout - ${market.title}`
+                        );
+
+                position.settled = true;
+                position.result = "WIN";
+                position.settledPrice = 10;
+                position.payout = payout;
+                position.profitLoss = profit;
+                position.settledAt = settlementTime;
+
+                await position.save();
+            }else{
+
+                position.settled = true;
+                position.result = "LOSS";
+                position.settledPrice = 0;
+                position.payout = 0;
+                position.profitLoss = -(position.averageBuyPrice * position.shares);
+                position.settledAt = settlementTime;
+
+                await position.save();
+
+            }
+
+        }
+
+        market.status = "SETTLED";
+        market.settledAt = settlementTime;
+
+        await market.save();
+
+        return resp.status(200).json({
+            message:"Market settled successfully",
+        });
+
+    }catch(error){
+        console.error(error);
+
+        return resp.status(500).json({
+            message:"Failed to settle the market"
+        })
+    }
+}
+
 module.exports = {
     createMarket,
     getAllMarkets,
-    getMarketById
+    getMarketById,
+    closeMarket,
+    declareWinner,
+    settleMarket
 };

@@ -57,7 +57,7 @@ const marketSchema = new mongoose.Schema(
 
         status: {
             type: String,
-            enum: ["OPEN", "CLOSED", "RESOLVED"],
+            enum: ["OPEN", "CLOSED", "SETTLED"],
             default: "OPEN"
         },
 
@@ -76,6 +76,17 @@ const marketSchema = new mongoose.Schema(
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",
             required: true
+        },
+
+        winningSide:{
+            type: String,
+            enum: ["YES","NO"],
+            default: null
+        },
+
+        settledAt: {
+            type: Date,
+            default: null
         }
     },
     {

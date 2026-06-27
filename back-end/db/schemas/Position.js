@@ -28,7 +28,48 @@ const positionSchema = new mongoose.Schema(
         averageBuyPrice: {
             type: Number,
             default: 0
+        },
+
+        settled:{
+            type: Boolean,
+            default: false
+        },
+
+        settledPrice: {
+            type: Number,
+            default: null
+        },
+
+        payout: {
+            type: Number,
+            default:0
+        },
+
+        profitLoss: {
+            type: Number,
+            default: 0
+        },
+
+        result:{
+            type: String,
+            enum: ["WIN","LOSS"],
+        },
+
+        settledAt: {
+            type: Date,
+            default: null
+        },
+
+        createdAt: {
+            type: Date,
+            default: null
+        },
+
+        updatedAt: {
+            type: Date,
+            default: null
         }
+
     },
     {
         timestamps: true

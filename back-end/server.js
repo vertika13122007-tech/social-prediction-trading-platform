@@ -8,6 +8,7 @@ const marketRoute = require("./src/routes/marketRoute");
 const tradeRoutes = require("./src/routes/tradeRoute");
 const portfolioRoute = require("./src/routes/portfolioRoute");
 const leaderboardRoute = require("./src/routes/leaderboardRoute");
+const dashboardRoute = require("./src/routes/dashbpardRouter");
 
 const app = express();
 
@@ -22,6 +23,7 @@ app.use("/api/markets",marketRoute);
 app.use("/api/trades",tradeRoutes);
 app.use("/api/portfolio",portfolioRoute);
 app.use("/api/leaderboard",leaderboardRoute);
+app.use("/api/dashboard",dashboardRoute);
 
 app.get("/",(req,resp) => {
     resp.send("Backend is working...");

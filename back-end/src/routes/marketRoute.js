@@ -10,7 +10,11 @@ const {
     getMarketById,
     closeMarket,
     declareWinner,
-    settleMarket
+    settleMarket,
+    getTrendingMarkets,
+    getRecentMarkets,
+    getOpenMarkets,
+    getSettledMarkets
 } = require("../controllers/marketController");
 const adminMiddleware = require("../middleware/adminMiddleware");
 
@@ -26,6 +30,26 @@ router.get(
     "/",
     getAllMarkets
 );
+
+router.get(
+    "/trending",
+    getTrendingMarkets
+);
+
+router.get(
+    "/recent",
+    getRecentMarkets
+)
+
+router.get(
+    "/open",
+    getOpenMarkets
+)
+
+router.get(
+    "/settled",
+    getSettledMarkets
+)
 
 
 router.get(

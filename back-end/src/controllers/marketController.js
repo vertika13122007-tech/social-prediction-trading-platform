@@ -260,11 +260,137 @@ const settleMarket = async (req,resp) =>{
     }
 }
 
+const getTrendingMarkets = async (req,resp) => {
+    try{
+
+        const trending = await Position.aggregate([
+            {
+                $group: {
+                    _id: "$marketId",
+                    totalSharesTraded: {
+                        $sum:"$shares"
+                    }
+                }
+            },
+            {
+                $sort: {
+                    totalPositions: -1
+                }
+            },
+            {
+                $lookup: {
+                    from: "markets",
+                    localField: "_id",
+                    foreignField: "_id",
+                    as: "market"
+                }
+            },
+            {
+                $unwind:"$market"
+            },
+            {
+                $project: {
+                    _id: 0,
+                    marketId: "$market._id",
+                    title: "$market.title",
+                    yesPrice: "$market.yesPrice",
+                    noPrice: "$market.noPrice",
+                    totalPositions: 1
+                }
+        }
+        ]);
+
+        return resp.status(200).json(trending);
+
+
+    }catch(error){
+        console.error(error);
+
+        return resp.status(500).json({
+            message:"Failed to fetch trending markets"
+        });
+    }
+};
+
+const getRecentMarkets = async (req,resp) =>{
+    try{
+
+        const recent = await Market
+            .find({})
+            .sort({
+                createdAt:-1
+            })
+            .limit(10)
+            .select(" title descriptioin yesPrice noPrice status createdAt");
+
+        return resp.status(200).json(recent);
+
+    }catch(error){
+        console.error(error);
+
+        return resp.status(500).json({
+            message:"Failed to fetch recent markets"
+        });
+    }
+}
+
+const getOpenMarkets = async (req,resp) =>{
+    try{
+
+        const open = await Market
+            .find({
+                status:"OPEN"
+            })
+            .sort({
+                createdAt:-1
+            })
+            .limit(10)
+            .select("title descriptioin yesPrice noPrice status createdAt");
+
+        return resp.status(200).json(open);
+
+    }catch(error){
+        console.error(error);
+
+        return resp.status(500).json({
+            message:"Failed to fetch open markets"
+        });
+    }
+}
+
+const getSettledMarkets = async (req,resp) =>{
+    try{
+
+        const settled = await Market
+            .find({
+                status:"SETTLED"
+            })
+            .sort({
+                settledAt:-1
+            })
+            .limit(10)
+            .select("title winningSide settledAt createdAt");
+
+        return resp.status(200).json(settled);
+
+    }catch(error){
+        console.error(error);
+
+        return resp.status(500).json({
+            message:"Failed to fetch settled markets"
+        });
+    }
+}
+
 module.exports = {
     createMarket,
     getAllMarkets,
     getMarketById,
     closeMarket,
     declareWinner,
-    settleMarket
+    settleMarket,
+    getTrendingMarkets,
+    getRecentMarkets,
+    getOpenMarkets,
+    getSettledMarkets
 };

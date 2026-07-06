@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   TrendingUp,
@@ -9,6 +10,7 @@ import {
 } from "lucide-react";
 
 export default function Login() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -45,6 +47,7 @@ export default function Login() {
     if (!validateForm()) return;
 
     alert("Login Successful!");
+    navigate("/home");
   };
 
   return (

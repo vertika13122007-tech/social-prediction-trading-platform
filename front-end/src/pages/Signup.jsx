@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   TrendingUp,
@@ -10,6 +11,8 @@ import {
 } from "lucide-react";
 
 export default function Signup() {
+  const navigate = useNavigate();
+
   const avatars = [
     "👩",
     "👨",
@@ -80,6 +83,7 @@ export default function Signup() {
     if (!validateForm()) return;
 
     alert("Account Created Successfully!");
+    navigate("/");
   };
 
   return (

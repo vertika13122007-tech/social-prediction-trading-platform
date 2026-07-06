@@ -1,0 +1,466 @@
+import { useState, useEffect } from "react";
+import Navbar from "../components/Navbar";
+import LiveUpdates from "../components/LiveUpdates";
+import {
+  Wallet as WalletIcon, TrendingUp, TrendingDown, DollarSign,
+  ArrowDownLeft, ArrowUpRight, Plus, Minus,
+  Clock, CheckCircle, XCircle, BarChart3
+} from "lucide-react";
+import {
+  AreaChart, Area, XAxis, YAxis, CartesianGrid,
+  Tooltip, ResponsiveContainer
+} from "recharts";
+
+const WEEK_DATA = [
+  { day: "Mon", balance: 10000 },
+  { day: "Tue", balance: 10800 },
+  { day: "Wed", balance: 10500 },
+  { day: "Thu", balance: 11200 },
+  { day: "Fri", balance: 10900 },
+  { day: "Sat", balance: 12100 },
+  { day: "Sun", balance: 12450 },
+];
+
+const INITIAL_TRANSACTIONS = [
+  {
+    id: 1,
+    type: "credit",
+    icon: <Plus size={15} />,
+    iconBg: "bg-emerald-100 dark:bg-emerald-900/30",
+    iconColor: "text-emerald-600 dark:text-emerald-400",
+    title: "Welcome Bonus 🎉",
+    desc: "Starter coin deposit — welcome to Live Market!",
+    amount: "+1,000",
+    amountColor: "text-emerald-600 dark:text-emerald-400",
+    date: "Today, 9:00 AM",
+    status: "completed",
+  },
+  {
+    id: 2,
+    type: "credit",
+    icon: <ArrowDownLeft size={15} />,
+    iconBg: "bg-blue-100 dark:bg-blue-900/30",
+    iconColor: "text-blue-600 dark:text-blue-400",
+    title: "Trade Win — Lakers NBA",
+    desc: "Prediction correct: Lakers to win NBA Championship",
+    amount: "+2,450",
+    amountColor: "text-emerald-600 dark:text-emerald-400",
+    date: "Yesterday, 3:45 PM",
+    status: "completed",
+  },
+  {
+    id: 3,
+    type: "debit",
+    icon: <ArrowUpRight size={15} />,
+    iconBg: "bg-orange-100 dark:bg-orange-900/30",
+    iconColor: "text-orange-600 dark:text-orange-400",
+    title: "Trade Investment",
+    desc: "Invested in: Bitcoin to $150K prediction",
+    amount: "-500",
+    amountColor: "text-red-500 dark:text-red-400",
+    date: "Yesterday, 1:20 PM",
+    status: "completed",
+  },
+  {
+    id: 4,
+    type: "credit",
+    icon: <DollarSign size={15} />,
+    iconBg: "bg-purple-100 dark:bg-purple-900/30",
+    iconColor: "text-purple-600 dark:text-purple-400",
+    title: "Deposit",
+    desc: "Wallet top-up via UPI",
+    amount: "+5,000",
+    amountColor: "text-emerald-600 dark:text-emerald-400",
+    date: "22 Jun, 10:00 AM",
+    status: "completed",
+  },
+  {
+    id: 5,
+    type: "debit",
+    icon: <ArrowUpRight size={15} />,
+    iconBg: "bg-orange-100 dark:bg-orange-900/30",
+    iconColor: "text-orange-600 dark:text-orange-400",
+    title: "Trade Investment",
+    desc: "Invested in: Tesla stock to $500 prediction",
+    amount: "-1,000",
+    amountColor: "text-red-500 dark:text-red-400",
+    date: "21 Jun, 4:15 PM",
+    status: "completed",
+  },
+  {
+    id: 6,
+    type: "debit",
+    icon: <Minus size={15} />,
+    iconBg: "bg-red-100 dark:bg-red-900/30",
+    iconColor: "text-red-600 dark:text-red-400",
+    title: "Withdrawal",
+    desc: "Transferred to bank account",
+    amount: "-2,000",
+    amountColor: "text-red-500 dark:text-red-400",
+    date: "20 Jun, 11:30 AM",
+    status: "completed",
+  },
+];
+
+const CustomTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl px-4 py-2.5 shadow-lg">
+        <p className="text-xs text-gray-400 mb-0.5">{label}</p>
+        <p className="text-sm font-bold text-blue-600">
+          🪙 {payload[0].value.toLocaleString()}
+        </p>
+      </div>
+    );
+  }
+  return null;
+};
+
+export default function Wallet() {
+  const [darkMode, setDarkMode] = useState(false);
+  const [liveUpdatesOpen, setLiveUpdatesOpen] = useState(false);
+  const [showDeposit, setShowDeposit] = useState(false);
+  const [showWithdraw, setShowWithdraw] = useState(false);
+  const [inputAmount, setInputAmount] = useState("");
+  const [transactions, setTransactions] = useState(INITIAL_TRANSACTIONS);
+  const [balance, setBalance] = useState(12450);
+  const [filter, setFilter] = useState("All");
+
+  useEffect(() => {
+    document.documentElement.classList.remove("dark");
+  }, []);
+
+  useEffect(() => {
+    if (darkMode) document.documentElement.classList.add("dark");
+    else document.documentElement.classList.remove("dark");
+  }, [darkMode]);
+
+  const totalInvested = 1500;
+  const totalEarned   = 2450;
+  const winRate       = 78;
+
+  const filteredTx = transactions.filter((t) => {
+    if (filter === "Credits") return t.type === "credit";
+    if (filter === "Debits")  return t.type === "debit";
+    return true;
+  });
+
+  const handleDeposit = () => {
+    const amt = parseInt(inputAmount);
+    if (!amt || amt <= 0) return;
+    const newTx = {
+      id: Date.now(),
+      type: "credit",
+      icon: <DollarSign size={15} />,
+      iconBg: "bg-blue-100 dark:bg-blue-900/30",
+      iconColor: "text-blue-600 dark:text-blue-400",
+      title: "Deposit",
+      desc: "Wallet top-up",
+      amount: `+${amt.toLocaleString()}`,
+      amountColor: "text-emerald-600 dark:text-emerald-400",
+      date: "Just now",
+      status: "completed",
+    };
+    setTransactions((prev) => [newTx, ...prev]);
+    setBalance((prev) => prev + amt);
+    setInputAmount("");
+    setShowDeposit(false);
+  };
+
+  const handleWithdraw = () => {
+    const amt = parseInt(inputAmount);
+    if (!amt || amt <= 0 || amt > balance) return;
+    const newTx = {
+      id: Date.now(),
+      type: "debit",
+      icon: <Minus size={15} />,
+      iconBg: "bg-red-100 dark:bg-red-900/30",
+      iconColor: "text-red-600 dark:text-red-400",
+      title: "Withdrawal",
+      desc: "Transferred to bank account",
+      amount: `-${amt.toLocaleString()}`,
+      amountColor: "text-red-500 dark:text-red-400",
+      date: "Just now",
+      status: "completed",
+    };
+    setTransactions((prev) => [newTx, ...prev]);
+    setBalance((prev) => prev - amt);
+    setInputAmount("");
+    setShowWithdraw(false);
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50 dark:bg-gray-950 transition-colors duration-200">
+      <Navbar
+        darkMode={darkMode}
+        setDarkMode={setDarkMode}
+        liveUpdatesOpen={liveUpdatesOpen}
+        setLiveUpdatesOpen={setLiveUpdatesOpen}
+      />
+
+      <div className="flex max-w-7xl mx-auto">
+        <main className="flex-1 min-w-0 px-4 py-6 space-y-5">
+
+          {/* ── Page Heading ── */}
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-600 to-teal-500 flex items-center justify-center shadow-md">
+              <WalletIcon size={22} className="text-white" />
+            </div>
+            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">
+              Wallet
+            </h1>
+          </div>
+
+          {/* ── Balance Card ── */}
+          <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-blue-600 via-blue-700 to-teal-600 p-6 sm:p-8 shadow-xl">
+            {/* Decorative blobs */}
+            <div className="absolute -top-10 -right-10 w-52 h-52 rounded-full bg-white/5 pointer-events-none" />
+            <div className="absolute -bottom-8 -left-8 w-36 h-36 rounded-full bg-teal-400/10 pointer-events-none" />
+
+            <div className="relative z-10">
+              <p className="text-blue-200 text-sm font-medium mb-1">Total Balance</p>
+              <div className="flex items-end gap-2 mb-6">
+                <span className="text-4xl sm:text-5xl font-bold text-white">
+                  🪙 {balance.toLocaleString()}
+                </span>
+                <span className="text-blue-200 text-sm mb-1.5">coins</span>
+              </div>
+
+              {/* Deposit / Withdraw buttons */}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => { setShowDeposit(true); setShowWithdraw(false); setInputAmount(""); }}
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-white text-blue-700 font-semibold text-sm hover:bg-blue-50 transition shadow-sm"
+                >
+                  <Plus size={16} />
+                  Deposit
+                </button>
+                <button
+                  onClick={() => { setShowWithdraw(true); setShowDeposit(false); setInputAmount(""); }}
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-white/15 hover:bg-white/25 text-white font-semibold text-sm transition border border-white/20"
+                >
+                  <Minus size={16} />
+                  Withdraw
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* ── Deposit modal ── */}
+          {showDeposit && (
+            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-blue-100 dark:border-blue-900/40 p-5 shadow-md">
+              <h3 className="font-bold text-gray-800 dark:text-white mb-3 flex items-center gap-2">
+                <Plus size={16} className="text-emerald-500" /> Deposit Coins
+              </h3>
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  value={inputAmount}
+                  onChange={(e) => setInputAmount(e.target.value)}
+                  placeholder="Enter amount..."
+                  className="flex-1 px-4 py-2.5 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                />
+                <button
+                  onClick={handleDeposit}
+                  className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold transition"
+                >
+                  Confirm
+                </button>
+                <button
+                  onClick={() => setShowDeposit(false)}
+                  className="px-4 py-2.5 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-500 text-sm transition hover:bg-gray-200 dark:hover:bg-gray-700"
+                >
+                  Cancel
+                </button>
+              </div>
+              <div className="flex gap-2 mt-3">
+                {[500, 1000, 2000, 5000].map((amt) => (
+                  <button
+                    key={amt}
+                    onClick={() => setInputAmount(String(amt))}
+                    className="px-3 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-xs font-semibold hover:bg-blue-100 transition"
+                  >
+                    +{amt}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ── Withdraw modal ── */}
+          {showWithdraw && (
+            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-red-100 dark:border-red-900/40 p-5 shadow-md">
+              <h3 className="font-bold text-gray-800 dark:text-white mb-3 flex items-center gap-2">
+                <Minus size={16} className="text-red-500" /> Withdraw Coins
+              </h3>
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  value={inputAmount}
+                  onChange={(e) => setInputAmount(e.target.value)}
+                  placeholder={`Max: ${balance.toLocaleString()}`}
+                  className="flex-1 px-4 py-2.5 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-400"
+                />
+                <button
+                  onClick={handleWithdraw}
+                  className="px-5 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white text-sm font-semibold transition"
+                >
+                  Confirm
+                </button>
+                <button
+                  onClick={() => setShowWithdraw(false)}
+                  className="px-4 py-2.5 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-500 text-sm transition hover:bg-gray-200 dark:hover:bg-gray-700"
+                >
+                  Cancel
+                </button>
+              </div>
+              {inputAmount && parseInt(inputAmount) > balance && (
+                <p className="text-red-500 text-xs mt-2">Insufficient balance</p>
+              )}
+            </div>
+          )}
+
+          {/* ── Stats row ── */}
+          <div className="grid grid-cols-3 gap-3">
+            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-4 text-center shadow-sm">
+              <div className="w-9 h-9 rounded-xl bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center mx-auto mb-2">
+                <TrendingDown size={18} className="text-orange-500" />
+              </div>
+              <p className="text-[11px] text-gray-400 dark:text-gray-500 mb-0.5">Total Invested</p>
+              <p className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
+                🪙 {totalInvested.toLocaleString()}
+              </p>
+            </div>
+            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-4 text-center shadow-sm">
+              <div className="w-9 h-9 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mx-auto mb-2">
+                <TrendingUp size={18} className="text-emerald-500" />
+              </div>
+              <p className="text-[11px] text-gray-400 dark:text-gray-500 mb-0.5">Total Earned</p>
+              <p className="text-base sm:text-lg font-bold text-emerald-600 dark:text-emerald-400">
+                🪙 {totalEarned.toLocaleString()}
+              </p>
+            </div>
+            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-4 text-center shadow-sm">
+              <div className="w-9 h-9 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mx-auto mb-2">
+                <BarChart3 size={18} className="text-blue-500" />
+              </div>
+              <p className="text-[11px] text-gray-400 dark:text-gray-500 mb-0.5">Win Rate</p>
+              <p className="text-base sm:text-lg font-bold text-blue-600 dark:text-blue-400">
+                {winRate}%
+              </p>
+            </div>
+          </div>
+
+          {/* ── Analytics Graph ── */}
+          <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="font-bold text-gray-900 dark:text-white text-base">Wallet Analytics</h2>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Balance trend this week</p>
+              </div>
+              <span className="text-xs font-semibold px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">
+                7 Days
+              </span>
+            </div>
+            <ResponsiveContainer width="100%" height={200}>
+              <AreaChart data={WEEK_DATA} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="balanceGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%"  stopColor="#3b82f6" stopOpacity={0.25} />
+                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}    />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" className="dark:stroke-gray-800" />
+                <XAxis dataKey="day" tick={{ fontSize: 11, fill: "#9ca3af" }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 10, fill: "#9ca3af" }} axisLine={false} tickLine={false} />
+                <Tooltip content={<CustomTooltip />} />
+                <Area
+                  type="monotone"
+                  dataKey="balance"
+                  stroke="#3b82f6"
+                  strokeWidth={2.5}
+                  fill="url(#balanceGrad)"
+                  dot={{ r: 4, fill: "#3b82f6", strokeWidth: 2, stroke: "#fff" }}
+                  activeDot={{ r: 6, fill: "#3b82f6" }}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* ── Transaction History ── */}
+          <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden pb-4">
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-800">
+              <h2 className="font-bold text-gray-900 dark:text-white text-base">
+                Transaction History
+              </h2>
+              {/* Filter */}
+              <div className="flex gap-1.5">
+                {["All", "Credits", "Debits"].map((f) => (
+                  <button
+                    key={f}
+                    onClick={() => setFilter(f)}
+                    className={`px-3 py-1 rounded-lg text-xs font-semibold transition ${
+                      filter === f
+                        ? "bg-blue-600 text-white"
+                        : "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+                    }`}
+                  >
+                    {f}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Transactions */}
+            {filteredTx.length > 0 ? (
+              <div className="divide-y divide-gray-50 dark:divide-gray-800">
+                {filteredTx.map((tx) => (
+                  <div key={tx.id} className="flex items-center gap-3 px-5 py-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition">
+                    {/* Icon */}
+                    <div className={`w-10 h-10 rounded-xl ${tx.iconBg} ${tx.iconColor} flex items-center justify-center shrink-0`}>
+                      {tx.icon}
+                    </div>
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-gray-800 dark:text-white truncate">{tx.title}</p>
+                      <p className="text-[11px] text-gray-400 dark:text-gray-500 truncate">{tx.desc}</p>
+                    </div>
+                    {/* Right */}
+                    <div className="text-right shrink-0">
+                      <p className={`text-sm font-bold ${tx.amountColor}`}>🪙 {tx.amount}</p>
+                      <p className="text-[10px] text-gray-400 mt-0.5 flex items-center gap-1 justify-end">
+                        <CheckCircle size={10} className="text-emerald-400" />
+                        {tx.date}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12 text-gray-400">
+                <p className="text-3xl mb-2">💸</p>
+                <p className="text-sm font-medium">No transactions here</p>
+              </div>
+            )}
+          </div>
+
+        </main>
+
+        {/* ── Desktop Live Updates sidebar ── */}
+        {liveUpdatesOpen && (
+          <aside className="hidden lg:flex flex-col w-72 shrink-0 sticky top-16 h-[calc(100vh-4rem)]">
+            <LiveUpdates onClose={() => setLiveUpdatesOpen(false)} />
+          </aside>
+        )}
+      </div>
+
+      {/* ── Mobile Live Updates panel ── */}
+      {liveUpdatesOpen && (
+        <div className="lg:hidden fixed top-16 right-0 z-40 h-[calc(100vh-4rem)] w-72 max-w-[85vw] flex flex-col bg-white dark:bg-gray-950 shadow-2xl border-l border-gray-100 dark:border-gray-800">
+          <LiveUpdates onClose={() => setLiveUpdatesOpen(false)} />
+        </div>
+      )}
+    </div>
+  );
+}

@@ -15,6 +15,8 @@ import Leaderboard from "./pages/Leaderboard";
 import Notifications from "./pages/Notifications";
 import Wallet from "./pages/Wallet";
 import Settings from "./pages/Settings";
+import VerifyOTP from "./pages/OTPVerify";
+import OTPVerify from "./pages/OTPVerify";
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -27,6 +29,7 @@ function AnimatedRoutes() {
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/verify-otp" element={<OTPVerify />} />
         <Route
           path="/home"
           element={

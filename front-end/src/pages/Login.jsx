@@ -47,7 +47,7 @@ export default function Login() {
     if (!validateForm()) return;
 
     alert("Login Successful!");
-    navigate("/home");
+    navigate("/verify-otp");
   };
 
   return (

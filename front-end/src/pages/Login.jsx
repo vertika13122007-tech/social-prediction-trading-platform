@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link , useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { login } from "../api/authApi";
 import {
   TrendingUp,
   CheckCircle,
@@ -9,6 +10,9 @@ import {
 } from "lucide-react";
 
 export default function Login() {
+
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -39,12 +43,19 @@ export default function Login() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
+    console.log("Submit button clicked");
 
     if (!validateForm()) return;
 
-    alert("Login Successful!");
+    const response = await login(formData);
+
+    localStorage.setItem("token",response.token);
+
+    navigate("/dashboard");
+
   };
 
   return (

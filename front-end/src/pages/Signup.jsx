@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { register } from "../api/authApi";
 import { useNavigate } from "react-router-dom";
@@ -12,7 +13,6 @@ import {
 } from "lucide-react";
 
 export default function Signup() {
-
   const navigate = useNavigate();
 
   const avatars = [

@@ -54,7 +54,7 @@ export default function Login() {
 
     localStorage.setItem("token",response.token);
 
-    navigate("/dashboard");
+    navigate("/home");
 
   };
 

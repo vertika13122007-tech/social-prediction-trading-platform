@@ -24,7 +24,7 @@ export default function TrendingBanner() {
     setCurrentIndex((prev) => (prev + 1) % trendingItems.length);
 
   return (
-    <div className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-blue-900 via-blue-800 to-teal-700 p-5 sm:p-6">
+    <div className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-blue-600 via-blue-700 to-teal-600 p-5 sm:p-6">
       {/* Decorative circles */}
       <div className="absolute -right-8 -top-8 w-40 h-40 rounded-full bg-white/5 pointer-events-none" />
       <div className="absolute -right-4 bottom-0 w-24 h-24 rounded-full bg-teal-500/10 pointer-events-none" />

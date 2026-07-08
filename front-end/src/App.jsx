@@ -17,6 +17,7 @@ import Wallet from "./pages/Wallet";
 import Settings from "./pages/Settings";
 import VerifyOTP from "./pages/OTPVerify";
 import OTPVerify from "./pages/OTPVerify";
+import Profile from "./pages/Profile";
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -43,6 +44,7 @@ function AnimatedRoutes() {
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/wallet" element={<Wallet />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/profile" element={<Profile />} />
       </Routes>
     </AnimatePresence>
   );

@@ -1,6 +1,7 @@
 require("dotenv").config();
 
 const express = require('express');
+const cors = require("cors");
 const connectDB = require("./db/config");
 const authRoutes = require("./src/routes/authroute");
 const walletRoute = require("./src/routes/walletroute");
@@ -11,6 +12,10 @@ const leaderboardRoute = require("./src/routes/leaderboardRoute");
 const dashboardRoute = require("./src/routes/dashbpardRouter");
 
 const app = express();
+
+app.use(cors({
+    origin: "http://localhost:5173"
+}));
 
 connectDB();
 

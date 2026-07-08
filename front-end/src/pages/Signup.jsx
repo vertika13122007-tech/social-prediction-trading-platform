@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { register } from "../api/authApi";
+import { useNavigate } from "react-router-dom";
 import {
   TrendingUp,
   CheckCircle,
@@ -77,14 +79,33 @@ export default function Signup() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!validateForm()) return;
 
-    alert("Account Created Successfully!");
-    navigate("/");
-  };
+    try {
+        await register({
+            name: formData.username,
+            email: formData.email,
+            password: formData.password,
+        });
+
+        navigate("/verify-otp", {
+            state: {
+                email: formData.email,
+            },
+        });
+
+    } catch (error) {
+        console.error(error);
+
+        alert(
+            error.response?.data?.message ||
+            "Registration failed"
+        );
+    }
+};
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-700 to-teal-600 flex items-center justify-center p-3 md:p-5">

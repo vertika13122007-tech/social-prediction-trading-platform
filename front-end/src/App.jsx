@@ -15,7 +15,6 @@ import Leaderboard from "./pages/Leaderboard";
 import Notifications from "./pages/Notifications";
 import Wallet from "./pages/Wallet";
 import Settings from "./pages/Settings";
-import VerifyOTP from "./pages/OTPVerify";
 import OTPVerify from "./pages/OTPVerify";
 import Profile from "./pages/Profile";
 

@@ -19,6 +19,7 @@ import Notifications from "./pages/Notifications";
 import Wallet from "./pages/Wallet";
 import Settings from "./pages/Settings";
 import OTPVerify from "./pages/OTPVerify";
+import Profile from "./pages/Profile";
 
 function AnimatedRoutes() {
   const location = useLocation();

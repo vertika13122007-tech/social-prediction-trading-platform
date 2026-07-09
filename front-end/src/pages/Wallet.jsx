@@ -29,7 +29,7 @@ const winRate = 0;
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-xl px-4 py-2.5 shadow-lg">
+      <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-700 rounded-xl px-4 py-2.5 shadow-xl">
         <p className="text-xs text-gray-400 mb-0.5">{label}</p>
         <p className="text-sm font-bold text-blue-600">
           🪙 {payload[0].value.toLocaleString()}
@@ -226,7 +226,7 @@ export default function Wallet() {
 
           {/* ── Page Heading ── */}
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-600 to-teal-500 flex items-center justify-center shadow-md">
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-600 via-blue-700 to-teal-600 flex items-center justify-center shadow-lg hover:shadow-blue-300/40 hover:scale-105 transition-all duration-300">
               <WalletIcon size={22} className="text-white" />
             </div>
             <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">
@@ -235,10 +235,12 @@ export default function Wallet() {
           </div>
 
           {/* ── Balance Card ── */}
-          <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-blue-600 via-blue-700 to-teal-600 p-6 sm:p-8 shadow-xl">
+          <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-blue-600 via-blue-700 to-teal-600 p-6 sm:p-8 shadow-xl hover:shadow-2xl hover:shadow-blue-500/30 dark:hover:shadow-blue-900/50 hover:-translate-y-0.5 transition-all duration-300 ring-1 ring-white/10">
             {/* Decorative blobs */}
             <div className="absolute -top-10 -right-10 w-52 h-52 rounded-full bg-white/5 pointer-events-none" />
             <div className="absolute -bottom-8 -left-8 w-36 h-36 rounded-full bg-teal-400/10 pointer-events-none" />
+            {/* Subtle shimmer line */}
+            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent pointer-events-none" />
 
             <div className="relative z-10">
               <p className="text-blue-200 text-sm font-medium mb-1">Total Balance</p>
@@ -253,14 +255,14 @@ export default function Wallet() {
               <div className="flex gap-3">
                 <button
                   onClick={() => { setShowDeposit(true); setShowWithdraw(false); setInputAmount(""); }}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-white text-blue-700 font-semibold text-sm hover:bg-blue-50 transition shadow-sm"
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-white text-blue-700 font-semibold text-sm hover:bg-blue-50 hover:scale-[1.03] active:scale-95 transition-all duration-200 shadow-md hover:shadow-lg"
                 >
-                  <Plus size={16} />
+                  <Plus size={16} className="group-hover:rotate-90 transition-transform duration-200" />
                   Deposit
                 </button>
                 <button
                   onClick={() => { setShowWithdraw(true); setShowDeposit(false); setInputAmount(""); }}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-white/15 hover:bg-white/25 text-white font-semibold text-sm transition border border-white/20"
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-white/15 hover:bg-white/30 text-white font-semibold text-sm transition-all duration-200 border border-white/20 hover:border-white/40 hover:scale-[1.03] active:scale-95 shadow-sm hover:shadow-md"
                 >
                   <Minus size={16} />
                   Withdraw
@@ -271,7 +273,7 @@ export default function Wallet() {
 
           {/* ── Deposit modal ── */}
           {showDeposit && (
-            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-blue-100 dark:border-blue-900/40 p-5 shadow-md">
+            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-blue-100 dark:border-blue-900/40 p-5 shadow-lg ring-1 ring-blue-100/50 dark:ring-blue-900/20 transition-all duration-300">
               <h3 className="font-bold text-gray-800 dark:text-white mb-3 flex items-center gap-2">
                 <Plus size={16} className="text-emerald-500" /> Deposit Coins
               </h3>
@@ -281,17 +283,17 @@ export default function Wallet() {
                   value={inputAmount}
                   onChange={(e) => setInputAmount(e.target.value)}
                   placeholder="Enter amount..."
-                  className="flex-1 px-4 py-2.5 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                  className="flex-1 px-4 py-2.5 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all duration-200"
                 />
                 <button
                   onClick={handleDeposit}
-                  className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold transition"
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-sm font-semibold transition-all duration-200 shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-95"
                 >
                   Confirm
                 </button>
                 <button
                   onClick={() => setShowDeposit(false)}
-                  className="px-4 py-2.5 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-500 text-sm transition hover:bg-gray-200 dark:hover:bg-gray-700"
+                  className="px-4 py-2.5 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-500 text-sm transition-all duration-200 hover:bg-gray-200 dark:hover:bg-gray-700 active:scale-95"
                 >
                   Cancel
                 </button>
@@ -301,7 +303,7 @@ export default function Wallet() {
                   <button
                     key={amt}
                     onClick={() => setInputAmount(String(amt))}
-                    className="px-3 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-xs font-semibold hover:bg-blue-100 transition"
+                    className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 text-blue-600 dark:text-blue-400 text-xs font-semibold hover:from-blue-100 hover:to-cyan-100 dark:hover:from-blue-900/40 dark:hover:to-cyan-900/40 hover:scale-[1.04] active:scale-95 transition-all duration-200 border border-blue-100/50 dark:border-blue-800/30"
                   >
                     +{amt}
                   </button>
@@ -312,7 +314,7 @@ export default function Wallet() {
 
           {/* ── Withdraw modal ── */}
           {showWithdraw && (
-            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-red-100 dark:border-red-900/40 p-5 shadow-md">
+            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-red-100 dark:border-red-900/40 p-5 shadow-lg ring-1 ring-red-100/50 dark:ring-red-900/20 transition-all duration-300">
               <h3 className="font-bold text-gray-800 dark:text-white mb-3 flex items-center gap-2">
                 <Minus size={16} className="text-red-500" /> Withdraw Coins
               </h3>
@@ -322,17 +324,17 @@ export default function Wallet() {
                   value={inputAmount}
                   onChange={(e) => setInputAmount(e.target.value)}
                   placeholder={`Max: ${balance.toLocaleString()}`}
-                  className="flex-1 px-4 py-2.5 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-400"
+                  className="flex-1 px-4 py-2.5 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-400 transition-all duration-200"
                 />
                 <button
                   onClick={handleWithdraw}
-                  className="px-5 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white text-sm font-semibold transition"
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white text-sm font-semibold transition-all duration-200 shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-95"
                 >
                   Confirm
                 </button>
                 <button
                   onClick={() => setShowWithdraw(false)}
-                  className="px-4 py-2.5 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-500 text-sm transition hover:bg-gray-200 dark:hover:bg-gray-700"
+                  className="px-4 py-2.5 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-500 text-sm transition-all duration-200 hover:bg-gray-200 dark:hover:bg-gray-700 active:scale-95"
                 >
                   Cancel
                 </button>
@@ -345,8 +347,9 @@ export default function Wallet() {
 
           {/* ── Stats row ── */}
           <div className="grid grid-cols-3 gap-3">
-            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-4 text-center shadow-sm">
-              <div className="w-9 h-9 rounded-xl bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center mx-auto mb-2">
+            {/* Total Invested */}
+            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-4 text-center shadow-sm hover:shadow-lg dark:hover:shadow-gray-900/60 hover:-translate-y-1 hover:scale-[1.01] transition-all duration-300 group">
+              <div className="w-9 h-9 rounded-xl bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform duration-300">
                 <TrendingDown size={18} className="text-orange-500" />
               </div>
               <p className="text-[11px] text-gray-400 dark:text-gray-500 mb-0.5">Total Invested</p>
@@ -354,8 +357,10 @@ export default function Wallet() {
                 🪙 {totalInvested.toLocaleString()}
               </p>
             </div>
-            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-4 text-center shadow-sm">
-              <div className="w-9 h-9 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mx-auto mb-2">
+
+            {/* Total Earned */}
+            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-4 text-center shadow-sm hover:shadow-lg dark:hover:shadow-gray-900/60 hover:-translate-y-1 hover:scale-[1.01] transition-all duration-300 group">
+              <div className="w-9 h-9 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform duration-300">
                 <TrendingUp size={18} className="text-emerald-500" />
               </div>
               <p className="text-[11px] text-gray-400 dark:text-gray-500 mb-0.5">Total Earned</p>
@@ -363,25 +368,34 @@ export default function Wallet() {
                 🪙 {totalEarned.toLocaleString()}
               </p>
             </div>
-            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-4 text-center shadow-sm">
-              <div className="w-9 h-9 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mx-auto mb-2">
+
+            {/* Win Rate */}
+            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-4 text-center shadow-sm hover:shadow-lg dark:hover:shadow-gray-900/60 hover:-translate-y-1 hover:scale-[1.01] transition-all duration-300 group">
+              <div className="w-9 h-9 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform duration-300">
                 <BarChart3 size={18} className="text-blue-500" />
               </div>
               <p className="text-[11px] text-gray-400 dark:text-gray-500 mb-0.5">Win Rate</p>
-              <p className="text-base sm:text-lg font-bold text-blue-600 dark:text-blue-400">
+              <p className="text-base sm:text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-teal-500">
                 {winRate}%
               </p>
+              {/* Mini progress bar */}
+              <div className="mt-2 w-full h-1 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-blue-500 to-teal-500 transition-all duration-700"
+                  style={{ width: `${winRate}%` }}
+                />
+              </div>
             </div>
           </div>
 
           {/* ── Analytics Graph ── */}
-          <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5 shadow-sm">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5 shadow-sm hover:shadow-xl dark:hover:shadow-gray-900/60 hover:-translate-y-0.5 transition-all duration-300">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h2 className="font-bold text-gray-900 dark:text-white text-base">Wallet Analytics</h2>
                 <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Balance trend this week</p>
               </div>
-              <span className="text-xs font-semibold px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">
+              <span className="text-xs font-semibold px-3 py-1 rounded-full bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-600 text-white shadow-sm">
                 7 Days
               </span>
             </div>
@@ -389,8 +403,8 @@ export default function Wallet() {
               <AreaChart data={WEEK_DATA} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="balanceGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%"  stopColor="#3b82f6" stopOpacity={0.25} />
-                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}    />
+                    <stop offset="5%"  stopColor="#3b82f6" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}   />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" className="dark:stroke-gray-800" />
@@ -400,32 +414,39 @@ export default function Wallet() {
                 <Area
                   type="monotone"
                   dataKey="balance"
-                  stroke="#3b82f6"
-                  strokeWidth={2.5}
+                  stroke="url(#lineGrad)"
+                  strokeWidth={3}
                   fill="url(#balanceGrad)"
                   dot={{ r: 4, fill: "#3b82f6", strokeWidth: 2, stroke: "#fff" }}
-                  activeDot={{ r: 6, fill: "#3b82f6" }}
+                  activeDot={{ r: 7, fill: "#06b6d4", stroke: "#fff", strokeWidth: 2 }}
                 />
+                <defs>
+                  <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%"   stopColor="#2563eb" />
+                    <stop offset="50%"  stopColor="#06b6d4" />
+                    <stop offset="100%" stopColor="#0d9488" />
+                  </linearGradient>
+                </defs>
               </AreaChart>
             </ResponsiveContainer>
           </div>
 
           {/* ── Transaction History ── */}
-          <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden pb-4">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-lg dark:hover:shadow-gray-900/50 transition-all duration-300 overflow-hidden pb-4">
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-800">
               <h2 className="font-bold text-gray-900 dark:text-white text-base">
                 Transaction History
               </h2>
-              {/* Filter */}
+              {/* Filter buttons */}
               <div className="flex gap-1.5">
                 {["All", "Credits", "Debits"].map((f) => (
                   <button
                     key={f}
                     onClick={() => setFilter(f)}
-                    className={`px-3 py-1 rounded-lg text-xs font-semibold transition ${
+                    className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all duration-200 hover:scale-[1.04] active:scale-95 ${
                       filter === f
-                        ? "bg-blue-600 text-white"
+                        ? "bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-600 text-white shadow-md"
                         : "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
                     }`}
                   >
@@ -435,13 +456,16 @@ export default function Wallet() {
               </div>
             </div>
 
-            {/* Transactions */}
+            {/* Transaction rows */}
             {filteredTx.length > 0 ? (
               <div className="divide-y divide-gray-50 dark:divide-gray-800">
                 {filteredTx.map((tx) => (
-                  <div key={tx.id} className="flex items-center gap-3 px-5 py-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition">
+                  <div
+                    key={tx.id}
+                    className={`flex items-center gap-3 px-5 py-4 hover:bg-blue-100 dark:hover:bg-gray-800/50 transition-all duration-200 border-l-2 border-l-transparent ${tx.borderGlow} group cursor-pointer`}
+                  >
                     {/* Icon */}
-                    <div className={`w-10 h-10 rounded-xl ${tx.iconBg} ${tx.iconColor} flex items-center justify-center shrink-0`}>
+                    <div className={`w-10 h-10 rounded-xl ${tx.iconBg} ${tx.iconColor} flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-200 shadow-sm`}>
                       {tx.icon}
                     </div>
                     {/* Info */}

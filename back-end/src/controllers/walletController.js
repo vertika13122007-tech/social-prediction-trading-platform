@@ -34,4 +34,75 @@ const getTransactions = async (req,resp) => {
     }
 }
 
-module.exports = {getWallet,getTransactions};
+const depositMoney = async (req, res) => {
+    try {
+        const { amount } = req.body;
+
+        if (!amount || amount <= 0) {
+            return res.status(400).json({
+                message: "Invalid amount"
+            });
+        }
+
+        const user = await User.findById(req.user.id);
+
+        user.walletBalance += Number(amount);
+        await user.save();
+
+        await Transactions.create({
+            userId: user._id,
+            type: "CREDIT",
+            amount,
+            description: "Wallet Deposit"
+        });
+
+        res.status(200).json({
+            message: "Deposit successful",
+            walletBalance: user.walletBalance
+        });
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            message: "Deposit failed"
+        });
+    }
+};
+
+
+const withdrawMoney = async (req, res) => {
+    try {
+        const { amount } = req.body;
+
+        const user = await User.findById(req.user.id);
+
+        if (amount > user.walletBalance) {
+            return res.status(400).json({
+                message: "Insufficient balance"
+            });
+        }
+
+        user.walletBalance -= Number(amount);
+        await user.save();
+
+        await Transactions.create({
+            userId: user._id,
+            type: "DEBIT",
+            amount,
+            description: "Wallet Withdrawal"
+        });
+
+        res.status(200).json({
+            message: "Withdrawal successful",
+            walletBalance: user.walletBalance
+        });
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({
+            message: "Withdrawal failed"
+        });
+    }
+};
+
+module.exports = {getWallet,getTransactions,depositMoney,withdrawMoney};

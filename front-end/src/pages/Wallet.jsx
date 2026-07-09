@@ -10,6 +10,7 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer
 } from "recharts";
+import { getWallet, getTransactions, deposit,withdraw } from "../api/walletApi";
 
 const WEEK_DATA = [
   { day: "Mon", balance: 10000 },
@@ -21,86 +22,9 @@ const WEEK_DATA = [
   { day: "Sun", balance: 12450 },
 ];
 
-const INITIAL_TRANSACTIONS = [
-  {
-    id: 1,
-    type: "credit",
-    icon: <Plus size={15} />,
-    iconBg: "bg-emerald-100 dark:bg-emerald-900/30",
-    iconColor: "text-emerald-600 dark:text-emerald-400",
-    title: "Welcome Bonus 🎉",
-    desc: "Starter coin deposit — welcome to Live Market!",
-    amount: "+1,000",
-    amountColor: "text-emerald-600 dark:text-emerald-400",
-    date: "Today, 9:00 AM",
-    status: "completed",
-  },
-  {
-    id: 2,
-    type: "credit",
-    icon: <ArrowDownLeft size={15} />,
-    iconBg: "bg-blue-100 dark:bg-blue-900/30",
-    iconColor: "text-blue-600 dark:text-blue-400",
-    title: "Trade Win — Lakers NBA",
-    desc: "Prediction correct: Lakers to win NBA Championship",
-    amount: "+2,450",
-    amountColor: "text-emerald-600 dark:text-emerald-400",
-    date: "Yesterday, 3:45 PM",
-    status: "completed",
-  },
-  {
-    id: 3,
-    type: "debit",
-    icon: <ArrowUpRight size={15} />,
-    iconBg: "bg-orange-100 dark:bg-orange-900/30",
-    iconColor: "text-orange-600 dark:text-orange-400",
-    title: "Trade Investment",
-    desc: "Invested in: Bitcoin to $150K prediction",
-    amount: "-500",
-    amountColor: "text-red-500 dark:text-red-400",
-    date: "Yesterday, 1:20 PM",
-    status: "completed",
-  },
-  {
-    id: 4,
-    type: "credit",
-    icon: <DollarSign size={15} />,
-    iconBg: "bg-purple-100 dark:bg-purple-900/30",
-    iconColor: "text-purple-600 dark:text-purple-400",
-    title: "Deposit",
-    desc: "Wallet top-up via UPI",
-    amount: "+5,000",
-    amountColor: "text-emerald-600 dark:text-emerald-400",
-    date: "22 Jun, 10:00 AM",
-    status: "completed",
-  },
-  {
-    id: 5,
-    type: "debit",
-    icon: <ArrowUpRight size={15} />,
-    iconBg: "bg-orange-100 dark:bg-orange-900/30",
-    iconColor: "text-orange-600 dark:text-orange-400",
-    title: "Trade Investment",
-    desc: "Invested in: Tesla stock to $500 prediction",
-    amount: "-1,000",
-    amountColor: "text-red-500 dark:text-red-400",
-    date: "21 Jun, 4:15 PM",
-    status: "completed",
-  },
-  {
-    id: 6,
-    type: "debit",
-    icon: <Minus size={15} />,
-    iconBg: "bg-red-100 dark:bg-red-900/30",
-    iconColor: "text-red-600 dark:text-red-400",
-    title: "Withdrawal",
-    desc: "Transferred to bank account",
-    amount: "-2,000",
-    amountColor: "text-red-500 dark:text-red-400",
-    date: "20 Jun, 11:30 AM",
-    status: "completed",
-  },
-];
+const totalInvested = 0;
+const totalEarned = 0;
+const winRate = 0;
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
@@ -116,15 +40,122 @@ const CustomTooltip = ({ active, payload, label }) => {
   return null;
 };
 
+const formatTransaction = (tx) => {
+  switch (tx.type) {
+    case "CREDIT":
+      return {
+        id: tx._id,
+        type: "credit",
+        icon: <Plus size={15} />,
+        iconBg: "bg-emerald-100 dark:bg-emerald-900/30",
+        iconColor: "text-emerald-600 dark:text-emerald-400",
+        title: "Credit",
+        desc: tx.description,
+        amount: `+${tx.amount.toLocaleString()}`,
+        amountColor: "text-emerald-600 dark:text-emerald-400",
+        date: new Date(tx.createdAt).toLocaleString(),
+        status: "completed",
+      };
+
+    case "DEBIT":
+      return {
+        id: tx._id,
+        type: "debit",
+        icon: <Minus size={15} />,
+        iconBg: "bg-red-100 dark:bg-red-900/30",
+        iconColor: "text-red-600 dark:text-red-400",
+        title: "Debit",
+        desc: tx.description,
+        amount: `-${tx.amount.toLocaleString()}`,
+        amountColor: "text-red-500 dark:text-red-400",
+        date: new Date(tx.createdAt).toLocaleString(),
+        status: "completed",
+      };
+
+    case "MARKET_BUY":
+      return {
+        id: tx._id,
+        type: "debit",
+        icon: <ArrowUpRight size={15} />,
+        iconBg: "bg-orange-100 dark:bg-orange-900/30",
+        iconColor: "text-orange-600 dark:text-orange-400",
+        title: "Market Buy",
+        desc: tx.description,
+        amount: `-${tx.amount.toLocaleString()}`,
+        amountColor: "text-red-500 dark:text-red-400",
+        date: new Date(tx.createdAt).toLocaleString(),
+        status: "completed",
+      };
+
+    case "MARKET_SELL":
+      return {
+        id: tx._id,
+        type: "credit",
+        icon: <ArrowDownLeft size={15} />,
+        iconBg: "bg-blue-100 dark:bg-blue-900/30",
+        iconColor: "text-blue-600 dark:text-blue-400",
+        title: "Market Sell",
+        desc: tx.description,
+        amount: `+${tx.amount.toLocaleString()}`,
+        amountColor: "text-emerald-600 dark:text-emerald-400",
+        date: new Date(tx.createdAt).toLocaleString(),
+        status: "completed",
+      };
+
+    case "REWARD":
+      return {
+        id: tx._id,
+        type: "credit",
+        icon: <DollarSign size={15} />,
+        iconBg: "bg-purple-100 dark:bg-purple-900/30",
+        iconColor: "text-purple-600 dark:text-purple-400",
+        title: "Reward",
+        desc: tx.description,
+        amount: `+${tx.amount.toLocaleString()}`,
+        amountColor: "text-emerald-600 dark:text-emerald-400",
+        date: new Date(tx.createdAt).toLocaleString(),
+        status: "completed",
+      };
+
+    default:
+      return tx;
+  }
+};
+
 export default function Wallet() {
   const [darkMode, setDarkMode] = useState(false);
   const [liveUpdatesOpen, setLiveUpdatesOpen] = useState(false);
   const [showDeposit, setShowDeposit] = useState(false);
   const [showWithdraw, setShowWithdraw] = useState(false);
   const [inputAmount, setInputAmount] = useState("");
-  const [transactions, setTransactions] = useState(INITIAL_TRANSACTIONS);
-  const [balance, setBalance] = useState(12450);
+  const [transactions, setTransactions] = useState([]);
+  const [balance, setBalance] = useState(0);
   const [filter, setFilter] = useState("All");
+
+  const filteredTx = (transactions || []).filter((t) => {
+    if (filter === "Credits") return t.type === "credit";
+    if (filter === "Debits") return t.type === "debit";
+    return true;
+  });
+
+  useEffect(() => {
+    const fetchWallet = async () => {
+      try{
+
+        const wallet = await getWallet();
+        const tx = await getTransactions();
+
+        setBalance(wallet.walletBalance);
+        setTransactions(tx.map(formatTransaction));
+
+      }catch(error){
+        console.error(error);
+      }
+    };
+
+    fetchWallet();
+
+  }, []);
 
   useEffect(() => {
     document.documentElement.classList.remove("dark");
@@ -135,58 +166,50 @@ export default function Wallet() {
     else document.documentElement.classList.remove("dark");
   }, [darkMode]);
 
-  const totalInvested = 1500;
-  const totalEarned   = 2450;
-  const winRate       = 78;
 
-  const filteredTx = transactions.filter((t) => {
-    if (filter === "Credits") return t.type === "credit";
-    if (filter === "Debits")  return t.type === "debit";
-    return true;
-  });
-
-  const handleDeposit = () => {
+  const handleDeposit = async () => {
     const amt = parseInt(inputAmount);
     if (!amt || amt <= 0) return;
-    const newTx = {
-      id: Date.now(),
-      type: "credit",
-      icon: <DollarSign size={15} />,
-      iconBg: "bg-blue-100 dark:bg-blue-900/30",
-      iconColor: "text-blue-600 dark:text-blue-400",
-      title: "Deposit",
-      desc: "Wallet top-up",
-      amount: `+${amt.toLocaleString()}`,
-      amountColor: "text-emerald-600 dark:text-emerald-400",
-      date: "Just now",
-      status: "completed",
-    };
-    setTransactions((prev) => [newTx, ...prev]);
-    setBalance((prev) => prev + amt);
-    setInputAmount("");
-    setShowDeposit(false);
+    
+    try{
+      await deposit(amt);
+
+      const wallet = await getWallet();
+      const tx = await getTransactions();
+
+      setBalance(wallet.walletBalance);
+      sestTransactions(tx.map(formatTransaction));
+
+      setInputAmount("");
+      setShowDeposit(false);
+
+    }catch(error){
+
+      console.error(error);
+
+    }
   };
 
-  const handleWithdraw = () => {
+  const handleWithdraw = async () => {
     const amt = parseInt(inputAmount);
     if (!amt || amt <= 0 || amt > balance) return;
-    const newTx = {
-      id: Date.now(),
-      type: "debit",
-      icon: <Minus size={15} />,
-      iconBg: "bg-red-100 dark:bg-red-900/30",
-      iconColor: "text-red-600 dark:text-red-400",
-      title: "Withdrawal",
-      desc: "Transferred to bank account",
-      amount: `-${amt.toLocaleString()}`,
-      amountColor: "text-red-500 dark:text-red-400",
-      date: "Just now",
-      status: "completed",
-    };
-    setTransactions((prev) => [newTx, ...prev]);
-    setBalance((prev) => prev - amt);
-    setInputAmount("");
-    setShowWithdraw(false);
+    try{
+
+      await withdraw(amt);
+
+      const wallet = await getWallet();
+      const tx = await getTransactions();
+
+      setBalance(wallet.walletBalance);
+      setTransactions(tx.map(formatTransaction));
+
+      setInputAmount("");
+      setShowWithdraw(false);
+
+    }catch(error){
+      console.error(error);
+    }
+
   };
 
   return (

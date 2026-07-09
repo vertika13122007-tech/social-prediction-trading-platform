@@ -13,10 +13,10 @@ import {
   RefreshCcw,
 } from "lucide-react";
 import OTPInput from "../components/OTPInput";
+import { verifyOtp } from "../api/authApi";
 
 const OTP_LENGTH = 6;
 const RESEND_SECONDS = 45;
-const DEMO_CODE = "123456"; // replace with real verification call
 
 function maskEmail(email) {
   if (!email || !email.includes("@")) return "your email";
@@ -41,8 +41,15 @@ const floatingIcons = [
 export default function OTPVerify() {
   const navigate = useNavigate();
   const location = useLocation();
-  const email = location.state?.email || "user@example.com";
+  const email = location.state?.email;
 
+  useEffect(() => {
+
+    if(!email){
+      navigate("/signup");
+    }
+
+  }, [email,navigate]);
   const [otp, setOtp] = useState("");
   const [timer, setTimer] = useState(RESEND_SECONDS);
   const [loading, setLoading] = useState(false);
@@ -60,25 +67,41 @@ export default function OTPVerify() {
   }, [timer]);
 
   const handleVerify = useCallback(
-    (code) => {
+    async (code) => {
       const value = code ?? otp;
-      if (value.length !== OTP_LENGTH || loading || verified) return;
+      
+      if( value.length !== OTP_LENGTH || loading || verified )
+        return;
 
       setLoading(true);
       setError("");
 
-      // Simulated verification request
-      setTimeout(() => {
-        if (value === DEMO_CODE) {
-          setLoading(false);
-          setVerified(true);
-          setTimeout(() => navigate("/home"), 1500);
-        } else {
-          setLoading(false);
-          setError("Invalid OTP. Please try again.");
-          setOtp("");
-        }
-      }, 1100);
+      try{
+
+        await verifyOtp({
+          email,
+          otp: value,
+        });
+
+        setLoading(false);
+
+        setVerified(true);
+
+        setTimeout(() => {
+          navigate("/");
+        }, 1500);
+      }catch (error) {
+
+        setLoading(false);
+
+        setError(
+          error.response?.data?.message ||
+          "Verification failed"
+        );
+
+        setOtp("");
+      }
+
     },
     [otp, loading, verified, navigate]
   );
@@ -163,11 +186,24 @@ export default function OTPVerify() {
                 <CheckCircle2 className="h-10 w-10 text-white" strokeWidth={2.5} />
               </motion.div>
               <h2 className="text-xl font-semibold text-slate-900 dark:text-white">
-                Verified Successfully
+                Account verified!
               </h2>
               <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                Redirecting...
+                Redirecting to Login...
               </p>
+              <p className="text-sm text-gray-400 mt-2">
+                  Please wait while we redirect you...
+              </p>
+              <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.3 }}
+              >
+                  <Loader2
+                      className="mx-auto mt-6 animate-spin text-blue-600"
+                      size={28}
+                  />
+              </motion.div>
             </motion.div>
           ) : (
             <motion.div
@@ -283,7 +319,7 @@ export default function OTPVerify() {
               {/* Secondary button */}
               <button
                 type="button"
-                onClick={() => navigate("/login")}
+                onClick={() => navigate("/")}
                 className="mt-3 w-full flex items-center justify-center gap-2 rounded-xl
                            border-2 border-slate-200 dark:border-slate-700
                            py-3 text-sm font-semibold text-slate-600 dark:text-slate-300

@@ -1,25 +1,43 @@
 const User = require("../../db/schemas/User");
+const { calculatePortfolio } = require("../services/portfolioService");
 
 const getLeaderboard = async ( req,resp ) => {
     try{
 
-        const users = await User
-            .find({})
-            .sort({ 
-                walletBalance: -1
-            })
-            .limit(10)
-            .select("name walletBalance");
+        const users = await User.find({});
 
-        const leaderboard = users.map((user,index) => {
-            return {
-                rank: index + 1,
-                ...user.toObject()
-            }
-        });
+        const leaderboard = await Promise.all(
+            users.map(async (user) => {
+                const portfolio = await calculatePortfolio(user._id);
+
+                return {
+                    _id:user._id,
+                    name: user.name,
+                    totalProfitLoss: portfolio.totalProfitLoss,
+                    totalInvested: portfolio.totalInvested,
+                    totalCurrentValue: portfolio.totalCurrentValue
+                };
+            })
+        );
+
+        leaderboard.sort(
+            (a,b) => 
+                b.totalProfitLoss -
+                a.totalProfitLoss
+        );
+
+        const ranked = leaderboard.map((user,index) => ({
+            rank: index+1,
+            ...user
+        }));
+
+        const currentUser = ranked.find(
+            (user) => user._id.toString() === req.user.id
+        );
 
         return resp.status(200).json({
-            leaderboard
+            leaderboard:ranked,
+            currentUser 
         });
 
     }catch(error){

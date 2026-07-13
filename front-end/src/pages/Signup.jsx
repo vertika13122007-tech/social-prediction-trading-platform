@@ -326,7 +326,7 @@ export default function Signup() {
                 to="/"
                 className="text-blue-600 font-semibold"
               >
-                Sign In
+                Log In
               </Link>
             </p>
 

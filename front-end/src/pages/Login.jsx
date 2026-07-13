@@ -132,7 +132,7 @@ export default function Login() {
             </h2>
 
             <p className="text-gray-500 mb-8">
-              Sign in to continue trading
+              Log in to continue trading
             </p>
 
             <form
@@ -208,7 +208,7 @@ export default function Login() {
                 type="submit"
                 className="w-full py-4 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-semibold text-lg hover:scale-[1.02] transition"
               >
-                Sign In
+                Log In
               </button>
 
             </form>

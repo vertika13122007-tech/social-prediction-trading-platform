@@ -1,13 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   Search, Bell, Moon, Sun, TrendingUp,
-  Menu, X, PanelRightOpen, PanelRightClose
+  Menu, X, PanelRightOpen, PanelRightClose,
+  User, Settings, LogOut
 } from "lucide-react";
 
 export default function Navbar({ darkMode, setDarkMode, liveUpdatesOpen, setLiveUpdatesOpen }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const profileRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -15,11 +18,39 @@ export default function Navbar({ darkMode, setDarkMode, liveUpdatesOpen, setLive
   const onHome = location.pathname === "/home";
   const onWallet = location.pathname === "/wallet";
 
+  // Close profile dropdown on outside click or Escape
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (profileRef.current && !profileRef.current.contains(e.target)) {
+        setProfileOpen(false);
+      }
+    };
+    const handleKey = (e) => {
+      if (e.key === "Escape") setProfileOpen(false);
+    };
+    document.addEventListener("mousedown", handleClick);
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      document.removeEventListener("mousedown", handleClick);
+      document.removeEventListener("keydown", handleKey);
+    };
+  }, []);
+
+  const handleProfileNav = (path) => {
+    setProfileOpen(false);
+    navigate(path);
+  };
+
+  const handleLogout = () => {
+    setProfileOpen(false);
+    navigate("/");
+  };
+
   return (
     <nav className="sticky top-0 z-50 bg-white dark:bg-gray-950 border-b border-gray-100 dark:border-gray-800 shadow-sm">
       <div className="max-w-screen-xl mx-auto px-4 py-3 flex items-center gap-2">
 
-        {/* Logo — clicking goes to Home */}
+        {/* Logo */}
         <div
           className="flex items-center gap-2 shrink-0 cursor-pointer"
           onClick={() => navigate("/home")}
@@ -69,7 +100,7 @@ export default function Navbar({ darkMode, setDarkMode, liveUpdatesOpen, setLive
             {liveUpdatesOpen ? <PanelRightClose size={18} /> : <PanelRightOpen size={18} />}
           </button>
 
-          {/* ✅ Bell — navigates to /notifications, highlights when active */}
+          {/* Bell */}
           <button
             onClick={() => navigate("/notifications")}
             title="Notifications"
@@ -80,7 +111,6 @@ export default function Navbar({ darkMode, setDarkMode, liveUpdatesOpen, setLive
             }`}
           >
             <Bell size={18} />
-            {/* Red dot — hide when already on notifications page */}
             {!onNotifications && (
               <span className="absolute top-1 right-1 w-4 h-4 bg-blue-600 text-white text-[9px] rounded-full flex items-center justify-center font-bold">
                 3
@@ -88,7 +118,7 @@ export default function Navbar({ darkMode, setDarkMode, liveUpdatesOpen, setLive
             )}
           </button>
 
-          {/* Wallet — clickable, navigates to /wallet */}
+          {/* Wallet */}
           <button
             onClick={() => navigate("/wallet")}
             title="Wallet"
@@ -102,9 +132,70 @@ export default function Navbar({ darkMode, setDarkMode, liveUpdatesOpen, setLive
             <span>10,000</span>
           </button>
 
-          {/* Avatar */}
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-xs font-bold cursor-pointer shrink-0">
-            S
+          {/* ── Profile Avatar + Dropdown ── */}
+          <div className="relative shrink-0" ref={profileRef}>
+            {/* Avatar button */}
+            <button
+              onClick={() => setProfileOpen((prev) => !prev)}
+              title="Profile"
+              className={`w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-xs font-bold cursor-pointer transition-all duration-200 hover:scale-110 hover:shadow-md hover:shadow-purple-300/40 dark:hover:shadow-purple-900/40 ${
+                profileOpen ? "ring-2 ring-purple-400 ring-offset-2 dark:ring-offset-gray-950 scale-110" : ""
+              }`}
+            >
+              S
+            </button>
+
+            {/* Dropdown */}
+            {profileOpen && (
+              <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-xl dark:shadow-gray-900/60 py-1.5 z-50 animate-[profileDropIn_0.2s_ease]">
+                {/* User info header */}
+                <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800">
+                  <p className="text-sm font-bold text-gray-900 dark:text-white">snehar.2536</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">snehar.2536@example.com</p>
+                </div>
+
+                {/* Menu items */}
+                <div className="py-1">
+                  {/* Profile */}
+                  <button
+                    onClick={() => handleProfileNav("/profile")}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200 rounded-xl mx-auto hover:text-gray-900 dark:hover:text-white group"
+                  >
+                    <span className="w-7 h-7 rounded-lg bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-200">
+                      <User size={14} className="text-blue-600 dark:text-blue-400" />
+                    </span>
+                    Profile
+                  </button>
+
+                  {/* Settings */}
+                  <button
+                    onClick={() => handleProfileNav("/settings")}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200 rounded-xl mx-auto hover:text-gray-900 dark:hover:text-white group"
+                  >
+                    <span className="w-7 h-7 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-200">
+                      <Settings size={14} className="text-gray-600 dark:text-gray-400" />
+                    </span>
+                    Settings
+                  </button>
+                </div>
+
+                {/* Divider */}
+                <div className="border-t border-gray-100 dark:border-gray-800 my-1" />
+
+                {/* Logout */}
+                <div className="py-1">
+                  <button
+                    onClick={handleLogout}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200 rounded-xl mx-auto group"
+                  >
+                    <span className="w-7 h-7 rounded-lg bg-red-50 dark:bg-red-900/20 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-200">
+                      <LogOut size={14} className="text-red-500" />
+                    </span>
+                    Logout
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Mobile hamburger */}

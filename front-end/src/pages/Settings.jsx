@@ -118,20 +118,22 @@ export default function Settings() {
         <main className="flex-1 min-w-0 px-4 py-6">
 
           {/* ── Page Heading ── */}
-          <div className="flex items-center gap-3 mb-1">
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-600 to-teal-500 flex items-center justify-center shadow-md">
-              <SettingsIcon size={22} className="text-white" />
+          <div className="max-w-2xl lg:max-w-3xl xl:max-w-4xl mx-auto mb-6">
+            <div className="flex items-center gap-3 mb-1">
+              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-600 to-teal-500 flex items-center justify-center shadow-md">
+                <SettingsIcon size={22} className="text-white" />
+              </div>
+              <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">
+                Settings
+              </h1>
             </div>
-            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">
-              Settings
-            </h1>
+            <p className="text-gray-500 dark:text-gray-400 text-sm ml-[3.5rem]">
+              Manage your account preferences
+            </p>
           </div>
-          <p className="text-gray-500 dark:text-gray-400 text-sm mb-6 ml-[3.5rem]">
-            Manage your account preferences
-          </p>
 
           {/* ── Vertical sections stack ── */}
-          <div className="max-w-2xl lg:max-w-3xl xl:max-w-4xl space-y-5 pb-10">
+          <div className="max-w-2xl lg:max-w-3xl xl:max-w-4xl mx-auto space-y-5 pb-10">
 
             {/* ════ ACCOUNT SETTINGS ════ */}
             <SettingsSection

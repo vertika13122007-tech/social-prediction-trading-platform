@@ -5,11 +5,13 @@ import {
   Menu, X, PanelRightOpen, PanelRightClose,
   User, Settings, LogOut
 } from "lucide-react";
+import { getWallet } from "../api/walletApi";
 
 export default function Navbar({ darkMode, setDarkMode, liveUpdatesOpen, setLiveUpdatesOpen }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [balance, setBalance] = useState(0);
   const profileRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
@@ -36,12 +38,30 @@ export default function Navbar({ darkMode, setDarkMode, liveUpdatesOpen, setLive
     };
   }, []);
 
+  useEffect(() =>{
+    const fetchWallet = async () =>{
+      try{
+
+        const wallet = await getWallet();
+
+        setBalance(wallet.walletBalance);
+
+      }catch(error){
+        console.error(error);
+      }
+    };
+
+    fetchWallet();
+
+  },[]);
+
   const handleProfileNav = (path) => {
     setProfileOpen(false);
     navigate(path);
   };
 
   const handleLogout = () => {
+    localStorage.removeItem("token");
     setProfileOpen(false);
     navigate("/");
   };
@@ -129,7 +149,7 @@ export default function Navbar({ darkMode, setDarkMode, liveUpdatesOpen, setLive
             }`}
           >
             <span className="text-xs">🪙</span>
-            <span>10,000</span>
+            <span>{balance}</span>
           </button>
 
           {/* ── Profile Avatar + Dropdown ── */}

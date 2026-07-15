@@ -382,6 +382,36 @@ const getSettledMarkets = async (req,resp) =>{
     }
 }
 
+const getTopMarkets = async (req,resp) => {
+    try{
+        const markets = await Market
+        .find()
+        .populate("createdBy","name")
+        .sort({
+            totalVolume:-1
+        })
+        .limit(10);
+
+        return resp.status(200).json(
+            markets.map((market,index) => ({
+                rank: index + 1,
+                title: market.title,
+                creator: market.createdBy.name,
+                totalVolume: market.totalVolume,
+                yesPrice: market.yesPrice,
+                noPrice: market.noPrice
+            }))
+        );
+
+    }catch(error){
+        console.error(error);
+
+        return resp.status(500).json({
+            message:"Failed to fetch Top markets"
+        });
+    }
+}
+
 module.exports = {
     createMarket,
     getAllMarkets,
@@ -392,5 +422,6 @@ module.exports = {
     getTrendingMarkets,
     getRecentMarkets,
     getOpenMarkets,
-    getSettledMarkets
+    getSettledMarkets,
+    getTopMarkets
 };

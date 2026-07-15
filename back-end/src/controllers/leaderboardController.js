@@ -1,5 +1,6 @@
 const User = require("../../db/schemas/User");
 const { calculatePortfolio } = require("../services/portfolioService");
+const Market  = require("../../db/schemas/Market");
 
 const getLeaderboard = async ( req,resp ) => {
     try{
@@ -49,6 +50,59 @@ const getLeaderboard = async ( req,resp ) => {
     }
 };
 
+const getTopCreators = async (req,resp) => {
+    try{
+        const admins = await User.find({role: "ADMIN"});
+
+        const creators = await Promise.all(
+            admins.map(async (admin) => {
+                const totalMarket = await Market.countDocuments({
+                    createdBy:admin._id
+                });
+
+                const totalVolume = await Market.aggregate([
+                    {
+                        $match:{
+                            createdBy: admin._id
+                        }
+                    },{
+                        $group: {
+                            _id: null,
+                            volume:{
+                                $sum: "$totalVolume"
+                            }
+                        }
+                    }
+                ]);
+
+                return {
+                    name: admin.name,
+                    totalMarket,
+                    totalVolume:
+                        totalVolume.length > 0
+                            ? totalVolume[0].volume
+                            : 0
+                };
+            })
+        );
+
+        creators.sort((a,b) => b.totalVolume - a.totalVolume);
+
+        resp.json(
+            creators.map((creator,index) => ({
+                rank: index + 1,
+                ...creator
+            }))
+        );
+    }catch(error){
+        console.error(error);
+        resp.status(500).json({
+            message: "Failed to fetch creators"
+        });
+    }
+};
+
 module.exports = {
-    getLeaderboard
+    getLeaderboard,
+    getTopCreators
 };

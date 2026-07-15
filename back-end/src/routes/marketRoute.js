@@ -14,7 +14,8 @@ const {
     getTrendingMarkets,
     getRecentMarkets,
     getOpenMarkets,
-    getSettledMarkets
+    getSettledMarkets,
+    getTopMarkets
 } = require("../controllers/marketController");
 const adminMiddleware = require("../middleware/adminMiddleware");
 
@@ -51,6 +52,10 @@ router.get(
     getSettledMarkets
 )
 
+router.get(
+    "/top",
+    getTopMarkets
+)
 
 router.get(
     "/:id",

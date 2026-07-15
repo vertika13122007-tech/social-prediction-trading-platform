@@ -4,6 +4,8 @@ import LiveUpdates from "../components/LiveUpdates";
 import { HelpCircle, Sparkles, X } from "lucide-react";
 import { Trophy, Crown, TrendingUp, Star, Users } from "lucide-react";
 import { getLeaderboard } from "../api/leaderboard";
+import { getTopCreators } from "../api/creatorApi";
+import { getTopMarkets } from "../api/marketApi";
 
 export default function Leaderboard() {
   const [darkMode, setDarkMode] = useState(false);
@@ -27,6 +29,8 @@ export default function Leaderboard() {
   const [currentUser, setCurrentUser] = useState(null);
 
   const [topTrades, setTopTrades] = useState([]);
+
+  const [topCreators, setTopCreators] = useState([]);
 
   useEffect(() => {
 
@@ -52,11 +56,38 @@ export default function Leaderboard() {
 
   const rankingList = topTraders.slice(3);
 
-  const creators = [
-    { rank: "#1", name: "WallStreetPro", followers: "12.5K", trades: "45" },
-    { rank: "#2", name: "TechOracle",    followers: "9.8K",  trades: "38" },
-    { rank: "#3", name: "CryptoKing",    followers: "11.2K", trades: "42" },
-  ];
+  useEffect(() => {
+    const fetchCreators = async () => {
+      try{
+
+        const data = await getTopCreators();
+
+        setTopCreators(data);
+
+      }catch(error){
+        console.error(error);
+      }
+    };
+    fetchCreators();
+  }, []);
+
+  const creators = topCreators.slice(3);
+
+  useEffect(() => {
+    const fetchTrades = async () => {
+      try{
+
+        const data = await getTopMarkets();
+
+        setTopTrades(data);
+
+      }catch(error){
+        console.error(error);
+      }
+    };
+    fetchTrades();
+  }, []);
+
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-gray-950 transition-colors duration-200">
@@ -187,10 +218,10 @@ export default function Leaderboard() {
             <>
               <div className="mb-8 max-w-5xl mx-auto px-6">
                 <h2 className="text-3xl font-bold text-gray-900 dark:text-white">💰 Most Profitable Trades</h2>
-                <p className="text-gray-500 mt-2">Highest ROI prediction markets this season</p>
+                <p className="text-gray-500 mt-2">Highest Money Volume prediction markets this season</p>
               </div>
               <div className="space-y-5 mb-8">
-                {profitableTrades.map((trade, index) => (
+                {topTrades.map((trade, index) => (
                   <div
                     key={index}
                     className="bg-white dark:bg-gray-900 rounded-3xl p-6 border border-gray-100 dark:border-gray-800 shadow-md dark:shadow-gray-900/50 hover:shadow-2xl dark:hover:shadow-gray-900/70 hover:-translate-y-1 hover:border-gray-200 dark:hover:border-gray-700 transition-all duration-300 group"
@@ -207,12 +238,12 @@ export default function Leaderboard() {
                       </div>
                       <div className="flex gap-8">
                         <div>
-                          <p className="text-sm text-gray-400">ROI</p>
-                          <p className="text-3xl font-bold text-green-600 group-hover:scale-105 transition-transform duration-200">{trade.roi}</p>
+                          <p className="text-sm text-gray-400">Volume</p>
+                          <p className="text-3xl font-bold text-green-600 group-hover:scale-105 transition-transform duration-200">₹{trade.totalVolume}</p>
                         </div>
                         <div>
                           <p className="text-sm text-gray-400">Trade Value</p>
-                          <p className="text-2xl font-bold text-gray-900 dark:text-white">{trade.value}</p>
+                          <p className="text-2xl font-bold text-gray-900 dark:text-white">YES: ₹{trade.yesPrice}, NO: ₹{trade.noPrice}</p>
                         </div>
                       </div>
                     </div>
@@ -236,10 +267,10 @@ export default function Leaderboard() {
                 <div className="order-2 md:order-1">
                   <div className="bg-gradient-to-br from-sky-500 to-indigo-600 rounded-3xl p-6 text-white text-center shadow-xl hover:-translate-y-2 transition duration-300">
                     <div className="w-20 h-20 mx-auto rounded-full bg-white/20 flex items-center justify-center text-4xl mb-4">👨‍💻</div>
-                    <p className="text-lg font-bold">{creators[1].name}</p>
+                    <p className="text-lg font-bold">{topCreators[1]?.name?? "No Creators Yet"}</p>
                     <div className="mt-5 space-y-2 text-sm">
-                      <p>👥 {creators[1].followers} Followers</p>
-                      <p>📊 {creators[1].trades} Markets</p>
+                      <p>💸 Volume : {topCreators[1]?.totalVolume}</p>
+                      <p>📊 {topCreators[1]?.totalMarket} Markets</p>
                     </div>
                     <div className="mt-5 bg-white/20 rounded-full py-2 font-semibold">🥈 Rank #2</div>
                   </div>
@@ -248,10 +279,10 @@ export default function Leaderboard() {
                 <div className="order-1 md:order-2">
                   <div className="bg-gradient-to-br from-yellow-400 via-orange-400 to-orange-600 rounded-3xl p-8 text-white text-center shadow-2xl md:scale-105 hover:-translate-y-2 transition duration-300">
                     <div className="w-24 h-24 mx-auto rounded-full bg-white/20 flex items-center justify-center text-5xl mb-5">👑</div>
-                    <p className="text-2xl font-bold">{creators[0].name}</p>
+                    <p className="text-2xl font-bold">{topCreators[0]?.name?? "No Creators Yet"}</p>
                     <div className="mt-6 space-y-2">
-                      <p className="text-lg">👥 {creators[0].followers} Followers</p>
-                      <p className="text-lg">📊 {creators[0].trades} Markets</p>
+                      <p className="text-lg">💸 Volume :  {topCreators[0]?.totalVolume}</p>
+                      <p className="text-lg">📊 {topCreators[0]?.totalMarket} Markets</p>
                     </div>
                     <div className="mt-6 bg-white/20 rounded-full py-2 font-semibold">🏆 Rank #1</div>
                   </div>
@@ -260,10 +291,10 @@ export default function Leaderboard() {
                 <div className="order-3">
                   <div className="bg-gradient-to-br from-pink-500 to-red-600 rounded-3xl p-6 text-white text-center shadow-xl hover:-translate-y-2 transition duration-300">
                     <div className="w-20 h-20 mx-auto rounded-full bg-white/20 flex items-center justify-center text-4xl mb-4">🚀</div>
-                    <p className="text-lg font-bold">{creators[2].name}</p>
+                    <p className="text-lg font-bold">{topCreators[2]?.name?? "No Creators Yet"}</p>
                     <div className="mt-5 space-y-2 text-sm">
-                      <p>👥 {creators[2].followers} Followers</p>
-                      <p>📊 {creators[2].trades} Markets</p>
+                      <p>💸 Volume : {topCreators[2]?.totalVolume}</p>
+                      <p>📊 {topCreators[2]?.totalMarket} Markets</p>
                     </div>
                     <div className="mt-5 bg-white/20 rounded-full py-2 font-semibold">🥉 Rank #3</div>
                   </div>
@@ -286,11 +317,11 @@ export default function Leaderboard() {
                       </div>
                       <div>
                         <p className="font-semibold text-gray-900 dark:text-white">{creator.name}</p>
-                        <p className="text-sm text-gray-500">{creator.followers} Followers</p>
+                        <p className="text-sm text-gray-500"> Volume : {creator.totalVolume}</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-teal-500 group-hover:scale-105 transition-transform duration-200">{creator.trades}</p>
+                      <p className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-teal-500 group-hover:scale-105 transition-transform duration-200">{creator.totalMarket}</p>
                       <p className="text-sm text-gray-500">Markets</p>
                     </div>
                   </div>

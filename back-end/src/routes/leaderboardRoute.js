@@ -4,12 +4,18 @@ const router = express.Router();
 
 const authmiddleware = require("../middleware/authMiddleware");
 
-const {getLeaderboard} = require("../controllers/leaderboardController");
+const {getLeaderboard,getTopCreators} = require("../controllers/leaderboardController");
 
 router.get(
     "/",
     authmiddleware,
     getLeaderboard
 );
+
+router.get(
+    "/creators",
+    authmiddleware,
+    getTopCreators
+)
 
 module.exports = router;

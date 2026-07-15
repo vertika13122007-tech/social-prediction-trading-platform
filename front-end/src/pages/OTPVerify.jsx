@@ -141,7 +141,7 @@ export default function OTPVerify() {
     <div
       ref={containerRef}
       className="relative min-h-screen w-full overflow-hidden flex items-center justify-center px-4 py-10
-                 bg-gradient-to-br from-blue-600 via-blue-700 to-teal-600
+                 bg-gradient-to-br from-blue-600 to-teal-700
                  bg-[length:200%_200%] animate-gradient-slow transition-colors duration-300"
     >
       {/* Ambient gradient blobs */}

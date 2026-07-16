@@ -13,37 +13,8 @@ import {
 } from "lucide-react";
 import Navbar from "../components/Navbar";
 import LiveUpdates from "../components/LiveUpdates";
+import { getAchievements, getProfile , getProfileSummary, getRecentTransactions, getPortfolioSummary} from "../api/profileApi";
 
-// Replace with real data from your auth/user + trading APIs
-const user = {
-  username: "snehar.2536",
-  email: "snehar.2536@gmail.com",
-  rank: "Unranked",
-  avatarUrl: null,
-};
-
-const stats = [
-  { label: "Total Trades", value: "0", Icon: TrendingUp },
-  { label: "Win Rate", value: "0%", Icon: Trophy },
-  { label: "Total Profit", value: "$0", Icon: Wallet },
-];
-
-const activity = [
-  {
-    id: 1,
-    title: "Welcome bonus - starter coins",
-    date: "7/7/2026",
-    amount: 10000,
-    type: "deposit",
-  },
-];
-
-const achievements = [
-  { id: 1, label: "First Trade", unlocked: false },
-  { id: 2, label: "5 Win Streak", unlocked: false },
-  { id: 3, label: "Profit Milestone", unlocked: false },
-  { id: 4, label: "Top 100 Rank", unlocked: false },
-];
 
 const tabs = [
   { key: "history", label: "Trading History" },
@@ -51,9 +22,20 @@ const tabs = [
 ];
 
 const badgeStyles = {
-  deposit: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400",
-  trade: "bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-400",
-  withdrawal: "bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-400",
+  credit:
+    "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400",
+
+  deposit:
+    "bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-400",
+
+  withdrawal:
+    "bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-400",
+
+  market_buy:
+    "bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-400",
+
+  market_sell:
+    "bg-purple-100 text-purple-700 dark:bg-purple-500/15 dark:text-purple-400",
 };
 
 export default function Profile() {
@@ -61,6 +43,42 @@ export default function Profile() {
   const [activeTab, setActiveTab] = useState("history");
   const [darkMode, setDarkMode] = useState(false);
   const [liveUpdatesOpen, setLiveUpdatesOpen] = useState(false);
+  const [user, setUser] = useState({
+    username: "",
+    email: "",
+    rank: "",
+    avatarUrl: null,
+  });
+  const [summary, setSummary] = useState({
+    totalTrades: 0,
+    winRate: 0,
+    walletBalance: 0,
+  });
+  const [activity, setActivity] = useState([]);
+  const [walletBalance, setWalletBalance] = useState(0);
+  const [achievements, setAchievements] = useState([]);
+  const [portfolio, setPortfolio] = useState({
+        totalInvested: 0,
+        totalCurrentValue: 0,
+        totalProfitLoss: 0
+    });
+    const stats = [
+    {
+      label: "Total Trades",
+      value: summary.totalTrades,
+      Icon: TrendingUp,
+    },
+    {
+      label: "Win Rate",
+      value: `${summary.winRate}%`,
+      Icon: Trophy,
+    },
+    {
+      label: "Wallet Balance",
+      value: `₹${walletBalance.toLocaleString()}`,
+      Icon: Wallet,
+    },
+  ];
 
   // Always start light on mount
   useEffect(() => {
@@ -74,6 +92,91 @@ export default function Profile() {
       document.documentElement.classList.remove("dark");
     }
   }, [darkMode]);
+
+  useEffect(() => {
+
+    const fetchProfile = async () => {
+
+      try {
+        const data = await getProfile();
+
+        setUser({
+          username: data.name,
+          email: data.email,
+          walletBalance: data.walletBalance,
+          rank: data.rank,
+          avatarUrl:
+            data.avatar ||
+            `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(
+              data.name
+            )}`,
+        });
+
+        setWalletBalance(data.walletBalance);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    fetchProfile();
+
+  }, []);
+
+  useEffect( () => {
+
+    const fetchSummary = async () => {
+
+      const data = await getProfileSummary();
+
+      setSummary(data);
+
+      };
+
+    fetchSummary();
+    
+  },[]);
+
+  useEffect( () => {
+
+    const fetchActivity = async () => {
+
+      const activity = await getRecentTransactions();
+
+      setActivity(activity);
+
+    }
+
+    fetchActivity();
+
+  },[]);
+
+  useEffect( () => {
+
+    const fetchAchievements = async () => {
+
+      const data = await getAchievements();
+
+      setAchievements(data);
+
+    };
+
+    fetchAchievements();
+
+  },[]);
+
+  useEffect(() => {
+
+    const fetchPortfolio = async () => {
+
+      const data = await getPortfolioSummary();
+
+      setPortfolio(data);
+
+    };
+
+    fetchPortfolio();
+
+  }, []);
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-[#070b14] transition-colors duration-300">
@@ -95,28 +198,32 @@ export default function Profile() {
         >
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
             <div className="flex items-center gap-4">
-              <div className="flex h-16 w-16 sm:h-[72px] sm:w-[72px] items-center justify-center rounded-2xl bg-white/25 backdrop-blur-sm shrink-0">
+              {/* Avatar */}
+              <div className="relative">
                 {user.avatarUrl ? (
                   <img
                     src={user.avatarUrl}
                     alt={user.username}
-                    className="h-full w-full rounded-2xl object-cover"
+                    className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-xl"
                   />
                 ) : (
-                  <User className="h-8 w-8 text-white/90" strokeWidth={1.8} />
+                  <div className="w-24 h-24 rounded-full bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center border-4 border-white shadow-xl">
+                    <span className="text-3xl font-bold text-white">
+                      {user.username?.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
                 )}
               </div>
-
               <div>
                 <h1 className="text-xl sm:text-2xl font-bold text-white">
-                  {user.username}
+                  {user?.name}
                 </h1>
                 <div className="mt-1 flex items-center gap-1.5 text-sm text-white/90">
                   <Mail className="h-4 w-4" />
-                  <span>{user.email}</span>
+                  <span>{user?.email}</span>
                 </div>
                 <span className="mt-2 inline-block rounded-full bg-white/20 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">
-                  Rank #{user.rank}
+                  Rank #{user?.rank?? "Unranked"}
                 </span>
               </div>
             </div>
@@ -153,6 +260,58 @@ export default function Profile() {
             </div>
           ))}
         </div>
+        
+        {/* Portfolio */}
+        <div
+          className="mt-6 rounded-3xl border border-slate-200 dark:border-slate-800
+                    bg-white dark:bg-slate-900/60 p-6 shadow-sm
+                    transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+        >
+          <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-5">
+            📊 Portfolio Summary
+          </h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+            <div>
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                Total Invested
+              </p>
+
+              <p className="text-2xl font-bold text-slate-900 dark:text-white mt-2">
+                ₹{portfolio.totalInvested.toLocaleString()}
+              </p>
+            </div>
+
+            <div>
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                Current Value
+              </p>
+
+              <p className="text-2xl font-bold text-slate-900 dark:text-white mt-2">
+                ₹{portfolio.totalCurrentValue.toLocaleString()}
+              </p>
+            </div>
+
+            <div>
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                Profit / Loss
+              </p>
+
+              <p
+                className={`text-2xl font-bold mt-2 ${
+                  portfolio.totalProfitLoss >= 0
+                    ? "text-emerald-600 dark:text-emerald-400"
+                    : "text-red-500 dark:text-red-400"
+                }`}
+              >
+                {portfolio.totalProfitLoss >= 0 ? "+" : "-"}₹
+                {Math.abs(portfolio.totalProfitLoss).toLocaleString()}
+              </p>
+            </div>
+
+          </div>
+        </div>
 
         {/* Tabs */}
         <div className="mt-6 inline-flex items-center gap-1 rounded-full bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 p-1.5 shadow-sm">
@@ -186,47 +345,60 @@ export default function Profile() {
                 </p>
               ) : (
                 <div className="mt-4 space-y-3">
-                  {activity.map((item) => (
-                    <div
-                      key={item.id}
-                      className="flex items-center justify-between rounded-xl bg-slate-50 dark:bg-slate-800/50 p-4
-                                 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
-                    >
-                      <div>
-                        <p className="text-sm font-semibold text-slate-900 dark:text-white">
-                          {item.title}
-                        </p>
-                        <p className="mt-0.5 text-xs text-slate-400 dark:text-slate-500">
-                          {item.date}
-                        </p>
-                      </div>
+                  {activity.map((item) => {
+                    const isCredit = [
+                      "credit",
+                      "deposit",
+                      "market_sell",
+                    ].includes(item.type);
 
-                      <div className="text-right">
-                        <p
-                          className={`flex items-center justify-end gap-0.5 text-sm font-bold ${
-                            item.amount >= 0
-                              ? "text-emerald-600 dark:text-emerald-400"
-                              : "text-red-500"
-                          }`}
-                        >
-                          {item.amount >= 0 ? (
-                            <ArrowUpRight className="h-3.5 w-3.5" />
-                          ) : (
-                            <ArrowDownRight className="h-3.5 w-3.5" />
-                          )}
-                          {item.amount >= 0 ? "+" : ""}
-                          {item.amount.toLocaleString()}
-                        </p>
-                        <span
-                          className={`mt-1 inline-block rounded-full px-2.5 py-0.5 text-[11px] font-medium capitalize ${
-                            badgeStyles[item.type] || badgeStyles.trade
-                          }`}
-                        >
-                          {item.type}
-                        </span>
+                    return (
+                      <div
+                        key={item.id}
+                        className="flex items-center justify-between rounded-xl bg-slate-50 dark:bg-slate-800/50 p-4
+                                  transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+                      >
+                        <div>
+                          <p className="text-sm font-semibold text-slate-900 dark:text-white">
+                            {item.title}
+                          </p>
+
+                          <p className="mt-0.5 text-xs text-slate-400 dark:text-slate-500">
+                            {new Date(item.date).toLocaleDateString()}
+                          </p>
+                        </div>
+
+                        <div className="text-right">
+                          <p
+                            className={`flex items-center justify-end gap-1 text-sm font-bold ${
+                              isCredit
+                                ? "text-emerald-600 dark:text-emerald-400"
+                                : "text-red-500 dark:text-red-400"
+                            }`}
+                          >
+                            {isCredit ? (
+                              <ArrowUpRight className="h-4 w-4" />
+                            ) : (
+                              <ArrowDownRight className="h-4 w-4" />
+                            )}
+
+                            {isCredit ? "+" : "-"}₹
+                            {Math.abs(item.amount).toLocaleString()}
+                          </p>
+
+                          <span
+                            className={`mt-1 inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-medium ${
+                              badgeStyles[item.type]
+                            }`}
+                          >
+                            {item.type
+                              .replaceAll("_", " ")
+                              .replace(/\b\w/g, (c) => c.toUpperCase())}
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </>
@@ -254,9 +426,9 @@ export default function Profile() {
                       }`}
                     >
                       {unlocked ? (
-                        <Trophy className="h-5 w-5" />
+                          <Trophy className="h-5 w-5 text-yellow-400" />
                       ) : (
-                        <Lock className="h-4 w-4" />
+                          <Lock className="h-4 w-4 text-slate-400" />
                       )}
                     </div>
                     <p className="text-xs font-medium text-slate-600 dark:text-slate-300">

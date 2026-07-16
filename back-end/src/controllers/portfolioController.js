@@ -6,7 +6,7 @@ const portfolioSummary = async ( req , resp ) =>{
 
         const portfolio = await calculatePortfolio(req.user_id);
 
-        return res.status(200).json(portfolio);
+        return resp.status(200).json(portfolio);
 
     }catch(error){
         console.error(error);

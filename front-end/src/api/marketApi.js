@@ -8,3 +8,18 @@ export const getTopMarkets = async () => {
     return response.data;
 
 }
+
+export const getOpenMarkets = async (
+    category = "Home",
+    sort = "newest"
+) => {
+
+    const response = await api.get("/markets/open",{
+        params: {
+            category,
+            sort
+        }
+    });
+
+    return response.data;
+}

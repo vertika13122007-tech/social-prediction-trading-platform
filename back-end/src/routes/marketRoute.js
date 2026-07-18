@@ -15,7 +15,7 @@ const {
     getRecentMarkets,
     getOpenMarkets,
     getSettledMarkets,
-    getTopMarkets
+    getTopMarkets,
 } = require("../controllers/marketController");
 const adminMiddleware = require("../middleware/adminMiddleware");
 

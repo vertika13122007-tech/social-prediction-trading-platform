@@ -7,23 +7,12 @@ import CategoryTabs from "../components/CategoryTabs";
 import TradeCard from "../components/TradeCard";
 import LiveUpdates from "../components/LiveUpdates";
 import { SlidersHorizontal, ChevronDown, HelpCircle, X, Sparkles, ExternalLink, BookOpen, HeadphonesIcon } from "lucide-react";
-
-const ALL_TRADES = [
-  { id: 1, creator: "FootballFan",   category: "Sports",   title: "Ronaldo to score 50+ goals this season",    poolValue: "$72.0K",  potentialROI: "+88%",  investors: 167, timeLeft: "19d 23h left", saved: false },
-  { id: 2, creator: "ContentAnalyst",category: "Creators", title: "Mr Beast to hit 500M subscribers",          poolValue: "$45.0K",  potentialROI: "+67%",  investors: 98,  timeLeft: "14d 23h left", saved: false },
-  { id: 3, creator: "SportsGuru",    category: "Sports",   title: "Lakers to win NBA Championship 2027",       poolValue: "$89.0K",  potentialROI: "+92%",  investors: 187, timeLeft: "11d 23h left", saved: false },
-  { id: 4, creator: "AppleInsider",  category: "Products", title: "Apple Vision Pro 2 to launch in 2026",      poolValue: "$98.0K",  potentialROI: "+112%", investors: 203, timeLeft: "8d 23h left",  saved: false },
-  { id: 5, creator: "CryptoKing",    category: "Memes",    title: "Dogecoin to $1 by end of 2026",             poolValue: "$67.0K",  potentialROI: "+83%",  investors: 156, timeLeft: "6d 23h left",  saved: false },
-  { id: 6, creator: "TechOracle",    category: "Trends",   title: "Will AI replace developers by 2027?",       poolValue: "$125.0K", potentialROI: "+145%", investors: 234, timeLeft: "4d 23h left",  saved: false },
-  { id: 7, creator: "CryptoWhale",   category: "Trends",   title: "Bitcoin to break $150K in 2026",            poolValue: "$189.0K", potentialROI: "+156%", investors: 312, timeLeft: "2d 12h left",  saved: false },
-  { id: 8, creator: "WallStreetPro", category: "Products", title: "Tesla stock to reach $500 in Q3 2026",      poolValue: "$210.0K", potentialROI: "+178%", investors: 289, timeLeft: "1d 8h left",   saved: false },
-];
+import { getOpenMarkets } from "../api/marketApi";
 
 const SORT_OPTIONS = [
   { label: "Newest First",    icon: "🆕" },
   { label: "Oldest First",    icon: "📅" },
-  { label: "Highest Profit",  icon: "📈" },
-  { label: "Lowest Profit",   icon: "📉" },
+  { label: "Highest Volume", icon: "💰" },
   { label: "Most Investors",  icon: "👥" },
   { label: "Recently Active", icon: "⚡" },
   { label: "Closing Soon",    icon: "⏰" },
@@ -67,7 +56,7 @@ export default function Home({ firstVisit = false, onMount }) {
   const [showAIChat, setShowAIChat] = useState(false);
   const [showHelpMenu, setShowHelpMenu] = useState(false);
   const [aiInput, setAiInput] = useState("");
-  const [trades, setTrades] = useState(ALL_TRADES);
+  const [trades, setTrades] = useState([]);
   const [aiMessages, setAiMessages] = useState([
     { role: "assistant", text: "Hi! I'm your AI trading assistant 🤖 Ask me anything about trades, predictions, or market trends!" }
   ]);
@@ -84,7 +73,87 @@ export default function Home({ firstVisit = false, onMount }) {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
+  useEffect(() => {
 
+    const fetchMarkets = async () => {
+
+      try{
+
+        const categoryMap = {
+          Home: "",
+          Sports: "SPORTS",
+          Creators: "CREATORS",
+          Memes: "MEMES",
+          Products: "PRODUCTS",
+          Trends: "TRENDS",
+          Saved: "Saved",
+        };
+
+        let category = categoryMap[activeCategory];
+
+        if (category === "Saved"){
+          return;
+        }
+
+        let sort = "newest";
+
+        switch (sortBy) {
+
+          case "Newest First":
+            sort = "newest";
+            break;
+
+          case "Oldest First":
+            sort = "oldest";
+            break;
+
+          case "Highest Volume":
+            sort = "volume";
+            break;
+
+          case "Most Investors":
+            sort = "investors";
+            break;
+
+          case "Recently Active":
+            sort = "recent";
+            break;
+
+          case "Closing Soon":
+            sort = "endingSoon";
+            break;
+
+          default:
+            sort = "newest";
+
+        }
+
+        const markets = await getOpenMarkets(category,sort);
+
+          setTrades(
+            markets.map((market) => ({
+              id: market._id,
+              creator: market.createdBy.name,
+              category: market.category,
+              title: market.title,
+              poolValue: market.totalVolume || 0,
+              yesPrice: market.yesPrice || 0,
+              noPrice: market.noPrice || 0,
+              endsAt: market.endsAt,
+              investors: market.participantsCount || 0,
+              saved: false,
+              }))
+            );
+
+      }catch(error){
+        console.error(error);
+      }
+
+    };
+
+    fetchMarkets();
+
+},[activeCategory,sortBy]);
 
   // Toggle bookmark on a trade
   const toggleSave = (id) => {
@@ -95,25 +164,10 @@ export default function Home({ firstVisit = false, onMount }) {
 
   const savedCount = trades.filter((t) => t.saved).length;
 
-  const filteredTrades = (() => {
-    let base;
-    if (activeCategory === "Saved") {
-      base = trades.filter((t) => t.saved);
-    } else if (activeCategory === "Home") {
-      base = [...trades];
-    } else {
-      base = trades.filter((t) => t.category === activeCategory);
-    }
-
-    if (sortBy === "Oldest First")      base.sort((a, b) => a.id - b.id);
-    else if (sortBy === "Highest Profit") base.sort((a, b) => parseInt(b.potentialROI) - parseInt(a.potentialROI));
-    else if (sortBy === "Lowest Profit")  base.sort((a, b) => parseInt(a.potentialROI) - parseInt(b.potentialROI));
-    else if (sortBy === "Most Investors") base.sort((a, b) => b.investors - a.investors);
-    else if (sortBy === "Recently Active" || sortBy === "Closing Soon") base.sort((a, b) => parseInt(a.timeLeft) - parseInt(b.timeLeft));
-    else base.sort((a, b) => b.id - a.id);
-
-    return base;
-  })();
+  const filteredTrades =
+    activeCategory === "Saved"
+      ? trades.filter((t) => t.saved)
+      : trades;
 
   const handleAISend = () => {
     if (!aiInput.trim()) return;

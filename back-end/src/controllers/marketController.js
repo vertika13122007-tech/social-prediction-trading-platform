@@ -334,29 +334,67 @@ const getRecentMarkets = async (req,resp) =>{
     }
 }
 
-const getOpenMarkets = async (req,resp) =>{
-    try{
+const getOpenMarkets = async (req, res) => {
+    try {
 
-        const open = await Market
-            .find({
-                status:"OPEN"
-            })
-            .sort({
-                createdAt:-1
-            })
-            .limit(10)
-            .select("title descriptioin yesPrice noPrice status createdAt");
+        const filter = {
+            status: "OPEN"
+        };
 
-        return resp.status(200).json(open);
+        // Category filter
+        if (
+            req.query.category &&
+            req.query.category !== "Home"
+        ) {
+            filter.category = req.query.category;
+        }
 
-    }catch(error){
+        let sortOption = { createdAt: -1 };
+
+        switch(req.query.sort){
+
+            case "oldest":
+                sortOption = { createdAt: 1 };
+                break;
+
+            case "volume":
+                sortOption = { totalVolume: -1 };
+                break;
+
+            case "investors":
+                sortOption = { participantsCount: -1 };
+                break;
+
+            case "recent":
+                sortOption = { updatedAt: -1 };
+                break;
+
+            case "endingSoon":
+                sortOption = { endsAt: 1 };
+                break;
+
+            case "newest":
+            default:
+                sortOption = { createdAt: -1 };
+        }
+
+        const markets = await Market.find(filter)
+            .populate("createdBy", "name")
+            .sort(sortOption)
+            .limit(12);
+
+        return res.status(200).json(markets);
+
+    } catch (error) {
+
         console.error(error);
 
-        return resp.status(500).json({
-            message:"Failed to fetch open markets"
+        return res.status(500).json({
+            message: "Failed to fetch open markets"
         });
+
     }
-}
+};
 
 const getSettledMarkets = async (req,resp) =>{
     try{
@@ -410,7 +448,7 @@ const getTopMarkets = async (req,resp) => {
             message:"Failed to fetch Top markets"
         });
     }
-}
+};
 
 module.exports = {
     createMarket,

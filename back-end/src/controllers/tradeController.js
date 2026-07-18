@@ -48,7 +48,13 @@ const buyShares = async (req , resp ) => {
         let position = await Position.findOne({
             userId: req.user.id,
             marketId,
-            side
+            side,
+            settled:false
+        });
+
+        let alreadyInvested = await Position.exists({
+            userId: req.user.id,
+            marketId
         });
 
         if (!position) {
@@ -68,9 +74,9 @@ const buyShares = async (req , resp ) => {
                 position.shares *
                 position.averageBuyPrice;
 
-            const totalNewCost =
-                shares *
-                sharePrice;
+            const totalNewCost =Number(
+                (shares * sharePrice).toFixed(2)
+            );
 
             const totalShares =
                 position.shares + shares;
@@ -96,6 +102,10 @@ const buyShares = async (req , resp ) => {
 
         market.totalVolume += totalCost;
 
+        if(!alreadyInvested){
+            market.participationCount += 1;
+        }
+
         await market.save();
 
         return resp.status(200).json({
@@ -116,7 +126,9 @@ const buyShares = async (req , resp ) => {
 const getMyPosition = async ( req, resp ) => {
     try{
         const positions = await Position.find({
-            userId: req.user.id
+            userId: req.user.id,
+            sharess: {$gt: 0},
+            settled: false
         }).populate(
             "marketId",
             "title status"
@@ -205,14 +217,26 @@ const sellShares = async (req , resp) => {
 
         position.shares -= shares;
 
-        if( position.shares === 0){
+        if (position.shares === 0) {
+
             await Position.deleteOne({
-                _id : position._id
+                _id: position._id
             });
-        }
-        
-        else{
+
+            const remainingPositions = await Position.exists({
+                userId: req.user.id,
+                marketId
+            });
+
+            if (!remainingPositions) {
+                market.participantsCount -= 1;
+                await market.save();
+            }
+
+        } else {
+
             await position.save();
+
         }
 
         return resp.status(200).json({
@@ -228,6 +252,18 @@ const sellShares = async (req , resp) => {
             message: "Failed to sell shares"
         });
     }
+};
+
+const getTradingHistory = async (req,resp) => {
+
+    const history = await Position.find({
+        userId: req.user.id
+    })
+    .populate("marketId","title category")
+    .sort({ updatedAt: -1});
+
+    resp.json(history);
+
 };
 
 module.exports = {

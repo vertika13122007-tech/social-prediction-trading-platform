@@ -5,6 +5,7 @@ import {
   CheckCircle, ChevronDown, ChevronUp, Zap, Shield,
   BarChart3, Activity, Flame, Star, ArrowRight, Wallet
 } from "lucide-react";
+import { buyShares } from "../api/positionApi";
 
 const RECENT_ACTIVITY = [
   { user: "Rahul",  amount: "₹1,200", side: "YES", time: "2m ago"  },
@@ -29,6 +30,7 @@ function AnimatedNumber({ value }) {
 }
 
 export default function InvestModal({ trade, onClose }) {
+  
   const [prediction, setPrediction] = useState(null); // "YES" | "NO"
   const [amount, setAmount] = useState(500);
   const [inputVal, setInputVal] = useState("500");
@@ -42,7 +44,7 @@ export default function InvestModal({ trade, onClose }) {
   const noStats  = { rate: "26%", investors: "1,210", users: "32%", money: "₹8.4L",  returns: "3.20x", pct: 32 };
 
   const selectedStats = prediction === "YES" ? yesStats : prediction === "NO" ? noStats : null;
-  const odds      = prediction === "YES" ? 1.85 : prediction === "NO" ? 3.20 : 0;
+  const odds      = prediction === "YES" ? trade.yesPrice : trade.noPrice;
   const potential = +(amount * odds).toFixed(0);
   const profit    = potential - amount;
   const fee       = +(amount * 0.02).toFixed(0);
@@ -84,13 +86,58 @@ export default function InvestModal({ trade, onClose }) {
     setInputVal(String(n));
   };
 
-  const handleInvest = () => {
+  const handleInvest = async () => {
+
+    console.log("Button clicked");
+
     if (!prediction || amount <= 0) return;
+
     setLoading(true);
-    setTimeout(() => { setLoading(false); setSuccess(true); }, 1400);
+
+    try {
+
+        const shares = Number((amount / odds).toFixed(4));
+
+        console.log({
+            marketId: trade.id,
+            side: prediction,
+            shares
+        });
+
+        const response = await buyShares(
+            trade.id,
+            prediction,
+            shares
+        );
+
+        console.log("API Response:", response);
+
+        setSuccess(true);
+
+    } catch (err) {
+
+        console.error("API Error:", err);
+
+        alert(
+            err.response?.data?.message ||
+            "Investment failed"
+        );
+
+    } finally {
+
+        setLoading(false);
+
+    }
+
   };
 
   const canInvest = prediction && amount > 0;
+
+  console.log({
+    prediction,
+    amount,
+    canInvest,
+  });
 
   return (
     <div

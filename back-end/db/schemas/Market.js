@@ -19,12 +19,10 @@ const marketSchema = new mongoose.Schema(
             required: true,
             enum: [
                 "SPORTS",
-                "CRYPTO",
-                "ENTERTAINMENT",
-                "POLITICS",
-                "TECH",
+                "CREATORS",
                 "MEMES",
-                "OTHER"
+                "PRODUCTS",
+                "TRENDS"
             ]
         },
 
@@ -53,6 +51,11 @@ const marketSchema = new mongoose.Schema(
         totalVolume: {
             type: Number,
             default: 0
+        },
+
+        participationCount: {
+            type: Number,
+            default:0
         },
 
         status: {

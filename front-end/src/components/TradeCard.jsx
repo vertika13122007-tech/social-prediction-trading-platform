@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { TrendingUp, Users, Clock, ArrowRight, Bookmark } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
-import InvestModal from "./InvestModal";
+import InvestModal from "./Investmodal";
 
 const categoryColors = {
   Sports:   "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300",
@@ -12,13 +12,19 @@ const categoryColors = {
 };
 
 export default function TradeCard({ trade, onToggleSave }) {
-  const { id, creator, category, title, poolValue, potentialROI, investors, timeLeft, saved } = trade;
+  const { id, creator, category, title, poolValue, investors, endsAt, yesPrice, noPrice, saved } = trade;
   const [showModal, setShowModal] = useState(false);
 
-  const roiNum = parseInt(potentialROI);
-  const roiColor = roiNum >= 100
-    ? "text-emerald-600 dark:text-emerald-400"
-    : "text-emerald-500 dark:text-emerald-300";
+  const getTimeLeft = (endsAt) => {
+    const diff = new Date(endsAt) - new Date();
+
+    if (diff <= 0 ) return "Closed";
+
+    const days = Math.floor(diff/ (1000*60*60*24));
+    const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+
+    return `${days}d ${hours}h`;
+  };
 
   return (
     <>
@@ -61,19 +67,35 @@ export default function TradeCard({ trade, onToggleSave }) {
         {/* Stats */}
         <div className="grid grid-cols-2 gap-2">
           <div className="bg-gray-50 dark:bg-gray-800/60 rounded-xl p-2.5">
-            <p className="text-[10px] text-gray-400 dark:text-gray-500 mb-0.5">Pool Value</p>
-            <p className="text-sm font-bold text-gray-800 dark:text-white">{poolValue}</p>
+            <p className="text-[10px] text-gray-400 dark:text-gray-500 mb-0.5">
+              Pool Value
+            </p>
+            <p className="text-sm font-bold text-gray-800 dark:text-white">
+              ₹{poolValue.toLocaleString()}
+            </p>
           </div>
-          <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-2.5">
-            <p className="text-[10px] text-gray-400 dark:text-gray-500 mb-0.5">Potential ROI</p>
-            <p className={`text-sm font-bold ${roiColor}`}>{potentialROI}</p>
+          <div className="bg-gray-50 dark:bg-gray-800/60 rounded-xl p-2.5">
+            <div className="flex justify-between text-xs">
+              <span className="text-emerald-600 font-bold">
+                YES ₹{yesPrice}
+              </span>
+              <span className="text-red-500 font-bold">
+                NO ₹{noPrice}
+              </span>
+            </div>
+            <div className="mt-2 h-2 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
+              <div
+                className="h-full bg-emerald-500"
+                style={{ width: `${yesPrice * 10}%` }}
+              />
+            </div>
           </div>
         </div>
 
         {/* Investors & Time */}
         <div className="flex items-center justify-between text-[11px] text-gray-400 dark:text-gray-500">
           <span className="flex items-center gap-1"><Users size={11} />{investors} investors</span>
-          <span className="flex items-center gap-1"><Clock size={11} />{timeLeft}</span>
+          <span className="flex items-center gap-1"><Clock size={11} />{getTimeLeft(endsAt)}</span>
         </div>
 
         {/* Invest button — opens modal */}

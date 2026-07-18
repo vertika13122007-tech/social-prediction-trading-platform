@@ -30,6 +30,26 @@ const positionSchema = new mongoose.Schema(
             default: 0
         },
 
+        investedAmount:{
+            type:Number,
+            default:0
+        },
+
+        currentValue: {
+            type: Number,
+            default: 0
+        },
+
+        unrealizedPnL: {
+            type: Number,
+            default: 0
+        },
+
+        realizedPnL: {
+            type: Number,
+            default: 0
+        },
+
         settled:{
             type: Boolean,
             default: false
@@ -60,16 +80,10 @@ const positionSchema = new mongoose.Schema(
             default: null
         },
 
-        createdAt: {
-            type: Date,
-            default: null
-        },
-
-        updatedAt: {
+        closedAt: {
             type: Date,
             default: null
         }
-
     },
     {
         timestamps: true

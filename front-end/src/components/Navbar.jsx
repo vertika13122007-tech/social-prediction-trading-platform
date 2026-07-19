@@ -6,6 +6,7 @@ import {
   User, Settings, LogOut
 } from "lucide-react";
 import { getWallet } from "../api/walletApi";
+import { useAuth } from "../context/AuthContext";
 
 export default function Navbar({ darkMode, setDarkMode, liveUpdatesOpen, setLiveUpdatesOpen }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -60,11 +61,15 @@ export default function Navbar({ darkMode, setDarkMode, liveUpdatesOpen, setLive
     navigate(path);
   };
 
+  const { logout } = useAuth();
+
   const handleLogout = () => {
-    localStorage.removeItem("token");
+    logout();
     setProfileOpen(false);
     navigate("/");
   };
+
+  const { user } = useAuth();
 
   return (
     <nav className="sticky top-0 z-50 bg-white dark:bg-gray-950 border-b border-gray-100 dark:border-gray-800 shadow-sm">
@@ -159,10 +164,12 @@ export default function Navbar({ darkMode, setDarkMode, liveUpdatesOpen, setLive
               onClick={() => setProfileOpen((prev) => !prev)}
               title="Profile"
               className={`w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-xs font-bold cursor-pointer transition-all duration-200 hover:scale-110 hover:shadow-md hover:shadow-purple-300/40 dark:hover:shadow-purple-900/40 ${
-                profileOpen ? "ring-2 ring-purple-400 ring-offset-2 dark:ring-offset-gray-950 scale-110" : ""
+                profileOpen
+                  ? "ring-2 ring-purple-400 ring-offset-2 dark:ring-offset-gray-950 scale-110"
+                  : ""
               }`}
             >
-              S
+              {user?.name?.charAt(0).toUpperCase() || "U"}
             </button>
 
             {/* Dropdown */}
@@ -170,8 +177,8 @@ export default function Navbar({ darkMode, setDarkMode, liveUpdatesOpen, setLive
               <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-xl dark:shadow-gray-900/60 py-1.5 z-50 animate-[profileDropIn_0.2s_ease]">
                 {/* User info header */}
                 <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800">
-                  <p className="text-sm font-bold text-gray-900 dark:text-white">snehar.2536</p>
-                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">snehar.2536@example.com</p>
+                  <p className="text-sm font-bold text-gray-900 dark:text-white">{user?.name}</p>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{user?.email}</p>
                 </div>
 
                 {/* Menu items */}

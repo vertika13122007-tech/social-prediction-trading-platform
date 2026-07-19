@@ -105,11 +105,7 @@ export default function Profile() {
           email: data.email,
           walletBalance: data.walletBalance,
           rank: data.rank,
-          avatarUrl:
-            data.avatar ||
-            `https://api.dicebear.com/9.x/initials/svg?seed=${encodeURIComponent(
-              data.name
-            )}`,
+          avatarUrl: data.avatar,
         });
 
         setWalletBalance(data.walletBalance);

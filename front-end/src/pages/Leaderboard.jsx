@@ -23,7 +23,15 @@ export default function Leaderboard() {
   }, [darkMode]);
 
   const [liveUpdatesOpen, setLiveUpdatesOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState("Top Traders");
+
+  const params = new URLSearchParams(location.search);
+
+  const initalTab = 
+    params.get("tab") === "markets"
+      ?"Most Profitable"
+      :"Top Traders";
+
+  const [activeTab, setActiveTab] = useState(initalTab);
 
   const [topTraders, setTopTraders] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);

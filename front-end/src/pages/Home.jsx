@@ -8,6 +8,7 @@ import TradeCard from "../components/TradeCard";
 import LiveUpdates from "../components/LiveUpdates";
 import { SlidersHorizontal, ChevronDown, HelpCircle, X, Sparkles, ExternalLink, BookOpen, HeadphonesIcon } from "lucide-react";
 import { getOpenMarkets } from "../api/marketApi";
+import { useAuth } from "../context/AuthContext";
 
 const SORT_OPTIONS = [
   { label: "Newest First",    icon: "🆕" },
@@ -61,6 +62,8 @@ export default function Home({ firstVisit = false, onMount }) {
     { role: "assistant", text: "Hi! I'm your AI trading assistant 🤖 Ask me anything about trades, predictions, or market trends!" }
   ]);
   const sortMenuRef = useRef(null);
+
+  const { user } = useAuth();
 
   // Close sort menu on outside click
   useEffect(() => {
@@ -140,7 +143,7 @@ export default function Home({ firstVisit = false, onMount }) {
               yesPrice: market.yesPrice || 0,
               noPrice: market.noPrice || 0,
               endsAt: market.endsAt,
-              investors: market.participantsCount || 0,
+              investors: market.participationCount || 0,
               saved: false,
               }))
             );
@@ -199,7 +202,7 @@ export default function Home({ firstVisit = false, onMount }) {
           {/* Welcome */}
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-              Welcome back, snehar.2536! <span>👋</span>
+              Welcome back, {user?.name}! <span>👋</span>
             </h1>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
               Explore trending predictions and make profitable trades

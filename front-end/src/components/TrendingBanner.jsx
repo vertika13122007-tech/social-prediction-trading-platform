@@ -1,15 +1,28 @@
 import { Flame, ArrowUpRight, ChevronRight, ChevronLeft } from "lucide-react";
 import { useState, useEffect } from "react";
-
-const trendingItems = [
-  "AI vs Developers prediction is gaining traction 🔥",
-  "Tesla stock prediction reached new milestone 🚀",
-  "$50K distributed to winning investors 💰",
-  "Lakers championship prediction closing soon ⏰",
-];
+import { useNavigate } from "react-router-dom";
+import { getTredingMarkets } from "../api/marketApi";
 
 export default function TrendingBanner() {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [trendingItems, setTrendingItems] = useState([null]);
+
+  useEffect(() => {
+    const fetchTrendingMarkets = async () => {
+      try {
+        const markets = await getTredingMarkets();
+
+        setTrendingItems(
+          markets.map((market) => market.title)
+        );
+
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    fetchTrendingMarkets();
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -22,6 +35,8 @@ export default function TrendingBanner() {
     setCurrentIndex((prev) => (prev - 1 + trendingItems.length) % trendingItems.length);
   const next = () =>
     setCurrentIndex((prev) => (prev + 1) % trendingItems.length);
+
+  const navigate = useNavigate();
 
   return (
     <div className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-blue-600 via-blue-700 to-teal-600 p-5 sm:p-6">
@@ -70,7 +85,9 @@ export default function TrendingBanner() {
             </button>
           </div>
 
-          <button className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white text-blue-900 font-semibold text-sm hover:bg-blue-50 transition shadow-sm">
+          <button 
+            onClick={() => navigate("/leaderboard?tab=markets")}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white text-blue-900 font-semibold text-sm hover:bg-blue-50 transition shadow-sm">
             View All
             <ArrowUpRight size={14} />
           </button>

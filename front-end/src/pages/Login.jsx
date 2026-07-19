@@ -8,10 +8,12 @@ import {
   Mail,
   Lock,
 } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
 
 export default function Login() {
 
   const navigate = useNavigate();
+  const { login: authLogin } = useAuth();
 
   const [formData, setFormData] = useState({
     email: "",
@@ -52,7 +54,10 @@ export default function Login() {
 
     const response = await login(formData);
 
-    localStorage.setItem("token",response.token);
+    authLogin(
+      response.token,
+      response.user
+    )
 
     navigate("/home");
 

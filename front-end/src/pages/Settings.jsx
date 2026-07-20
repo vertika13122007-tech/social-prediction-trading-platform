@@ -317,27 +317,6 @@ export default function Settings() {
                 </div>
                 <Toggle checked={twoFA} onChange={setTwoFA} />
               </div>
-
-              {/* Privacy Settings */}
-              <div className="space-y-1">
-                <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 flex items-center gap-1.5 mb-2">
-                  <Shield size={12} /> Privacy Settings
-                </p>
-                <div className="flex items-center justify-between p-3.5 rounded-xl bg-gray-50 dark:bg-gray-800/60">
-                  <div>
-                    <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">Public Profile</p>
-                    <p className="text-[11px] text-gray-400">Allow others to view your trading profile</p>
-                  </div>
-                  <Toggle checked={profileVisible} onChange={setProfileVisible} />
-                </div>
-                <div className="flex items-center justify-between p-3.5 rounded-xl bg-gray-50 dark:bg-gray-800/60 mt-2">
-                  <div>
-                    <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">Show Trade Activity</p>
-                    <p className="text-[11px] text-gray-400">Display your trades on the leaderboard</p>
-                  </div>
-                  <Toggle checked={showActivity} onChange={setShowActivity} />
-                </div>
-              </div>
             </SettingsSection>
 
           </div>

@@ -9,6 +9,8 @@ import LiveUpdates from "../components/LiveUpdates";
 import { SlidersHorizontal, ChevronDown, HelpCircle, X, Sparkles, ExternalLink, BookOpen, HeadphonesIcon } from "lucide-react";
 import { getOpenMarkets } from "../api/marketApi";
 import { useAuth } from "../context/AuthContext";
+import { sendMessage } from "../api/chatApi";
+import { motion } from "framer-motion";
 
 const SORT_OPTIONS = [
   { label: "Newest First",    icon: "🆕" },
@@ -61,6 +63,7 @@ export default function Home({ firstVisit = false, onMount }) {
   const [aiMessages, setAiMessages] = useState([
     { role: "assistant", text: "Hi! I'm your AI trading assistant 🤖 Ask me anything about trades, predictions, or market trends!" }
   ]);
+  const [loading, setLoading] = useState(false);
   const sortMenuRef = useRef(null);
 
   const { user } = useAuth();
@@ -172,15 +175,64 @@ export default function Home({ firstVisit = false, onMount }) {
       ? trades.filter((t) => t.saved)
       : trades;
 
-  const handleAISend = () => {
+  const handleAISend = async () => {
+
     if (!aiInput.trim()) return;
+
+    const userMessage = aiInput;
+
+    // Add user's message
     setAiMessages((prev) => [
-      ...prev,
-      { role: "user", text: aiInput },
-      { role: "assistant", text: `Great question! Based on current market trends, "${aiInput}" looks promising. Always do your own research before investing. 📊` }
+        ...prev,
+        {
+            sender: "user",
+            text: userMessage,
+        },
     ]);
+
     setAiInput("");
-  };
+
+    // Show typing indicator immediately
+    setAiMessages((prev) => [
+        ...prev,
+        {
+            sender: "ai",
+            typing: true,
+        },
+    ]);
+
+    setLoading(true);
+
+    try {
+        const reply = await sendMessage(userMessage);
+
+        // Replace typing bubble with actual response
+        setAiMessages((prev) => {
+
+            const updated = [...prev];
+
+            updated[updated.length - 1] = {
+                sender: "ai",
+                text: reply,
+                typing: false,
+            };
+
+            return updated;
+        });
+    } catch (err) {
+        setAiMessages((prev) => {
+            const updated = [...prev];
+            updated[updated.length - 1] = {
+                sender: "ai",
+                text: "Sorry, something went wrong.",
+                typing: false,
+            };
+            return updated;
+        });
+    } finally {
+        setLoading(false);
+    }
+};
 
   const isDesktop = () => window.innerWidth >= 1024;
 
@@ -333,16 +385,61 @@ export default function Home({ firstVisit = false, onMount }) {
             </div>
             <div className="flex-1 overflow-y-auto px-3 py-3 space-y-2.5">
               {aiMessages.map((msg, i) => (
-                <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                  <div className={`max-w-[85%] text-xs px-3 py-2 rounded-xl leading-relaxed ${
-                    msg.role === "user"
-                      ? "bg-blue-600 text-white rounded-br-sm"
-                      : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-bl-sm"
-                  }`}>
-                    {msg.text}
-                  </div>
-                </div>
-              ))}
+                <motion.div
+                    key={i}
+                    initial={{
+                        opacity:0,
+                        y:15
+                    }}
+                    animate={{
+                        opacity:1,
+                        y:0
+                    }}
+                    transition={{
+                        duration:0.25
+                    }}
+                    className={`flex ${
+                        msg.sender === "user"
+                            ? "justify-end"
+                            : "justify-start"
+                    }`}
+                >
+
+                    <div
+                        className={`max-w-[85%] text-xs px-3 py-2 rounded-xl leading-relaxed ${
+                            msg.sender === "user"
+                                ? "bg-blue-600 text-white rounded-br-sm"
+                                : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-bl-sm"
+                        }`}
+                    >
+                        {msg.typing ? (
+
+                          <div className="flex gap-1">
+
+                              <span className="w-2 h-2 rounded-full bg-blue-500 animate-bounce"></span>
+
+                              <span
+                                  className="w-2 h-2 rounded-full bg-blue-500 animate-bounce"
+                                  style={{animationDelay:"0.15s"}}
+                              ></span>
+
+                              <span
+                                  className="w-2 h-2 rounded-full bg-blue-500 animate-bounce"
+                                  style={{animationDelay:"0.3s"}}
+                              ></span>
+
+                          </div>
+
+                          ):(
+
+                          msg.text
+
+                          )}
+                    </div>
+
+                </motion.div>
+
+                ))}
             </div>
             <div className="px-3 py-3 border-t border-gray-100 dark:border-gray-800 flex gap-2">
               <input

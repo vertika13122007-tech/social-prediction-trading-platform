@@ -1,7 +1,7 @@
 import { Flame, ArrowUpRight, ChevronRight, ChevronLeft } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getTredingMarkets } from "../api/marketApi";
+import { getTrendingMarkets } from "../api/marketApi";
 
 export default function TrendingBanner() {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -10,7 +10,7 @@ export default function TrendingBanner() {
   useEffect(() => {
     const fetchTrendingMarkets = async () => {
       try {
-        const markets = await getTredingMarkets();
+        const markets = await getTrendingMarkets();
 
         setTrendingItems(
           markets.map((market) => market.title)

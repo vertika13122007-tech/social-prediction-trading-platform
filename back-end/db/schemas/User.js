@@ -25,6 +25,32 @@ const userSchema = new mongoose.Schema(
             type: String,
             enum: ["USER","ADMIN"],
             default: "USER"
+        },
+        notificationSettings: {
+            tradeUpdates: {
+                type: Boolean,
+                default: true,
+            },
+
+            priceAlerts: {
+                type: Boolean,
+                default: true,
+            },
+
+            payouts: {
+                type: Boolean,
+                default: true,
+            },
+
+            leaderboard: {
+                type: Boolean,
+                default: false,
+            },
+
+            marketing: {
+                type: Boolean,
+                default: false,
+            },
         }
     },{
         timestamps: true

@@ -35,6 +35,7 @@ export function AuthProvider({ children }) {
             value={{
                 token,
                 user,
+                setUser,
                 login,
                 logout,
             }}

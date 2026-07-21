@@ -7,6 +7,9 @@ import {
   Smartphone, Mail, AtSign, ChevronRight, Check,
   Volume2, MessageSquare, TrendingUp, DollarSign
 } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
+import { updateUsername, changePassword, getNotificationSettings } from "../api/userApi";
+import { useNavigate } from "react-router-dom";
 
 // Reusable toggle switch
 function Toggle({ checked, onChange }) {
@@ -45,6 +48,7 @@ function SettingsSection({ icon, iconBg, title, desc, children }) {
 }
 
 export default function Settings() {
+  
   const [darkMode, setDarkMode] = useState(false);
   const [liveUpdatesOpen, setLiveUpdatesOpen] = useState(false);
 
@@ -58,9 +62,12 @@ export default function Settings() {
   }, [darkMode]);
 
   // ── Account state ──
-  const [username, setUsername] = useState("snehar.2536");
-  const [email, setEmail] = useState("snehar.2536@example.com");
+  const [username, setUsername] = useState("");
   const [savedAccount, setSavedAccount] = useState(false);
+  const { user, setUser } = useAuth();
+
+  const navigate = useNavigate();
+  const { logout } = useAuth();
 
   // ── Appearance state ──
   const [themeMode, setThemeMode] = useState("light"); // light | dark | system
@@ -84,6 +91,9 @@ export default function Settings() {
   const [twoFA, setTwoFA] = useState(false);
   const [profileVisible, setProfileVisible] = useState(true);
   const [showActivity, setShowActivity] = useState(true);
+  const [sound, setSound] = useState(
+    localStorage.getItem("sound") === "true"
+  );
 
   const handleThemeChange = (mode) => {
     setThemeMode(mode);
@@ -96,13 +106,93 @@ export default function Settings() {
     }
   };
 
-  const handleSaveAccount = () => {
-    setSavedAccount(true);
-    setTimeout(() => setSavedAccount(false), 2000);
+  useEffect(() => {
+    if(user){
+      setUsername(user.name);
+    }
+  },[user]);
+
+  const handleSaveAccount = async () => {
+    try {
+        const response = await updateUsername(username);
+        setUser(response.user);
+        localStorage.setItem(
+            "user",
+            JSON.stringify(response.user)
+        );
+        setSavedAccount(true);
+        setTimeout(() => {
+            setSavedAccount(false);
+        }, 2000);
+        console.log(response);
+    } catch (err) {
+        alert(
+            err.response?.data?.message ||
+            "Failed to update username."
+        );
+    }
   };
 
-  const toggleNotif = (key) => {
-    setNotifSettings((prev) => ({ ...prev, [key]: !prev[key] }));
+  useEffect(() => {
+    async function fetchSettings() {
+      try {
+        const settings =
+          await getNotificationSettings();
+          setNotifSettings(settings);
+      } catch (err) {
+            console.log(err);
+        }
+    }
+    fetchSettings();
+  }, []);
+
+  const toggleNotif = async (key) => {
+    const updated = {
+        ...notifSettings,
+        [key]: !notifSettings[key],
+    };
+    setNotifSettings(updated);
+    try {
+      await updateNotificationSettings(updated);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  const handleChangePassword = async () => {
+
+    if (!currentPwd || !newPwd || !confirmPwd) {
+        return alert("Please fill all fields.");
+    }
+
+    if (newPwd !== confirmPwd) {
+        return alert("Passwords do not match.");
+    }
+
+    if (newPwd.length < 6) {
+        return alert("Password must be at least 6 characters.");
+    }
+
+    try {
+        const res = await changePassword(
+            currentPwd,
+            newPwd
+        );
+        alert("Password changed successfully.\nRedirecting to login...");
+        setCurrentPwd("");
+        setNewPwd("");
+        setConfirmPwd("");
+        setShowPasswordModal(false);
+        setTimeout(() => {
+            logout();
+            navigate("/");
+        }, 1200);
+            } catch (err) {
+        alert(
+            err.response?.data?.message ||
+            "Something went wrong."
+        );
+    }
   };
 
   return (
@@ -140,7 +230,7 @@ export default function Settings() {
               icon={<User size={19} className="text-blue-600 dark:text-blue-400" />}
               iconBg="bg-blue-100 dark:bg-blue-900/30"
               title="Account Settings"
-              desc="Update your username and email"
+              desc="Update your username"
             >
               {/* Username */}
               <div>
@@ -158,14 +248,23 @@ export default function Settings() {
               {/* Email */}
               <div>
                 <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5 flex items-center gap-1.5">
-                  <Mail size={12} /> Email Address
+                  <Mail size={12} />
+                  Email Address
                 </label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-sm text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition"
-                />
+
+                <div className="w-full px-4 py-2.5 rounded-xl bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                  <span className="text-sm text-gray-700 dark:text-gray-200">
+                    {user?.email}
+                  </span>
+
+                  <span className="text-xs font-medium text-gray-400 flex items-center gap-1">
+                    🔒 Locked
+                  </span>
+                </div>
+
+                <p className="text-xs text-gray-400 mt-2">
+                  Your email address cannot be changed because it is permanently linked to your trading account for security.
+                </p>
               </div>
 
               {/* Save button */}
@@ -174,7 +273,7 @@ export default function Settings() {
                 className="flex items-center justify-center gap-2 w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-teal-600 hover:from-blue-700 hover:to-teal-700 text-white text-sm font-semibold transition shadow-sm"
               >
                 {savedAccount ? <Check size={16} /> : <Save size={16} />}
-                {savedAccount ? "Saved!" : "Save Changes"}
+                {savedAccount ? "Saved!" : "Save Username"}
               </button>
             </SettingsSection>
 
@@ -298,25 +397,14 @@ export default function Settings() {
                       {showPwd ? <EyeOff size={15} /> : <Eye size={15} />}
                     </button>
                   </div>
-                  <button className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition">
+                  <button 
+                    onClick={handleChangePassword}
+                    className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition"
+                  >
                     Update Password
                   </button>
                 </div>
               )}
-
-              {/* Two-Factor Authentication */}
-              <div className="flex items-center justify-between p-3.5 rounded-xl bg-gray-50 dark:bg-gray-800/60">
-                <div className="flex items-center gap-3">
-                  <Smartphone size={16} className="text-gray-400" />
-                  <div>
-                    <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">Two-Factor Authentication</p>
-                    <p className="text-[11px] text-gray-400">
-                      {twoFA ? "Enabled — your account is extra secure" : "Add an extra layer of security"}
-                    </p>
-                  </div>
-                </div>
-                <Toggle checked={twoFA} onChange={setTwoFA} />
-              </div>
             </SettingsSection>
 
           </div>

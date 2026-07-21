@@ -8,7 +8,7 @@ import {
 import { getWallet } from "../api/walletApi";
 import { useAuth } from "../context/AuthContext";
 
-export default function Navbar({ darkMode, setDarkMode, liveUpdatesOpen, setLiveUpdatesOpen }) {
+export default function Navbar({ darkMode, setDarkMode, liveUpdatesOpen, setLiveUpdatesOpen, searchTerm, setSearchTerm }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -94,6 +94,8 @@ export default function Navbar({ darkMode, setDarkMode, liveUpdatesOpen, setLive
           <input
             type="text"
             placeholder="Search trades, creators..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
             onFocus={() => setSearchFocused(true)}
             onBlur={() => setSearchFocused(false)}
             className="w-full pl-9 pr-4 py-2 text-sm rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 placeholder-gray-400 border border-transparent focus:border-blue-500 focus:outline-none transition"
@@ -247,8 +249,6 @@ export default function Navbar({ darkMode, setDarkMode, liveUpdatesOpen, setLive
                   : "border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300"
               }`}
             >
-              <span className="text-xs">🪙</span>
-              <span>10,000</span>
             </button>
             <span className="text-sm text-gray-500 dark:text-gray-400">snehar.2536</span>
           </div>

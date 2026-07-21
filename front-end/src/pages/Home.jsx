@@ -65,6 +65,7 @@ export default function Home({ firstVisit = false, onMount }) {
   ]);
   const [loading, setLoading] = useState(false);
   const sortMenuRef = useRef(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const { user } = useAuth();
 
@@ -170,10 +171,22 @@ export default function Home({ firstVisit = false, onMount }) {
 
   const savedCount = trades.filter((t) => t.saved).length;
 
-  const filteredTrades =
-    activeCategory === "Saved"
+  let visibleTrades = 
+    activeCategory == "Saved"
       ? trades.filter((t) => t.saved)
       : trades;
+
+  if( searchTerm.trim() !== ""){
+    visibleTrades = visibleTrades.filter((trade) => {
+      return(
+        trade.title?.toLowerCase().includes(searchTerm.toLowerCase())
+        ||
+        trade.creator?.toLowerCase().includes(searchTerm.toLowerCase())
+        || 
+        trade.category?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  });
+  }
 
   const handleAISend = async () => {
 
@@ -205,8 +218,7 @@ export default function Home({ firstVisit = false, onMount }) {
 
     try {
         const reply = await sendMessage(userMessage);
-
-        // Replace typing bubble with actual response
+        
         setAiMessages((prev) => {
 
             const updated = [...prev];
@@ -244,6 +256,8 @@ export default function Home({ firstVisit = false, onMount }) {
         setDarkMode={setDarkMode}
         liveUpdatesOpen={liveUpdatesOpen}
         setLiveUpdatesOpen={setLiveUpdatesOpen}
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
       />
 
       <div className="flex max-w-screen-xl mx-auto">
@@ -306,24 +320,38 @@ export default function Home({ firstVisit = false, onMount }) {
           {/* Trades count */}
           <h2 className="font-bold text-gray-800 dark:text-white text-sm">
             {activeCategory === "Saved" ? "Saved Trades" : "All Trades"}{" "}
-            <span className="text-gray-400 dark:text-gray-500 font-normal">({filteredTrades.length})</span>
+            <span className="text-gray-400 dark:text-gray-500 font-normal">({visibleTrades.length})</span>
           </h2>
 
           {/* Trade cards */}
-          {filteredTrades.length > 0 ? (
+          {visibleTrades.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 pb-24">
-              {filteredTrades.map((trade) => (
+              {visibleTrades.map((trade) => (
                 <TradeCard key={trade.id} trade={trade} onToggleSave={toggleSave} />
               ))}
             </div>
           ) : (
             <div className="text-center py-16 text-gray-400 dark:text-gray-600 pb-24">
-              <p className="text-4xl mb-3">{activeCategory === "Saved" ? "🔖" : "🔍"}</p>
-              <p className="font-semibold">
-                {activeCategory === "Saved" ? "No saved trades yet" : "No trades in this category"}
+              <p className="text-4xl mb-3">
+                {searchTerm.trim()
+                  ? "🔍"
+                  : activeCategory === "Saved"
+                  ? "🔖"
+                  : "🔍"}
               </p>
+
+              <p className="font-semibold">
+                {searchTerm.trim()
+                  ? "No matching trades found"
+                  : activeCategory === "Saved"
+                  ? "No saved trades yet"
+                  : "No trades in this category"}
+              </p>
+
               <p className="text-sm mt-1">
-                {activeCategory === "Saved"
+                {searchTerm.trim()
+                  ? `No results for "${searchTerm}"`
+                  : activeCategory === "Saved"
                   ? "Tap the bookmark icon on any trade to save it"
                   : "Check back soon or explore other categories"}
               </p>

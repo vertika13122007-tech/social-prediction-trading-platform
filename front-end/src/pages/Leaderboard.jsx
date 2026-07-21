@@ -116,16 +116,13 @@ export default function Leaderboard() {
                 <h1 className="text-4xl font-bold text-gray-900 dark:text-white">🏆 Leaderboard</h1>
                 <p className="text-gray-500 mt-2">Compete with top traders and creators. Track performance and climb the rankings.</p>
               </div>
-              <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white px-5 py-3 rounded-2xl font-semibold shadow-lg hover:shadow-orange-300/40 hover:scale-[1.03] active:scale-95 transition-all duration-200">
-                🔥 Season 3 Live
-              </div>
             </div>
           </div>
 
           {/* ── Tabs ── */}
           <div className="bg-white dark:bg-gray-900 rounded-3xl p-2 shadow-md dark:shadow-gray-900/50 border border-gray-100 dark:border-gray-800 mb-8 hover:shadow-lg transition-all duration-300">
             <div className="flex gap-2 overflow-x-auto">
-              {["Top Traders", "Most Profitable", "Top Creators", "Weekly Rankings"].map((tab) => (
+              {["Top Traders", "Most Profitable", "Top Creators"].map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
@@ -334,34 +331,6 @@ export default function Leaderboard() {
                     </div>
                   </div>
                 ))}
-              </div>
-            </>
-          )}
-
-          {/* ── Weekly Rankings ── */}
-          {activeTab === "Weekly Rankings" && (
-            <>
-              <div className="mb-8 max-w-5xl mx-auto px-8">
-                <h2 className="text-3xl font-bold text-gray-900 dark:text-white">👑 Weekly Rankings</h2>
-                <p className="text-gray-500 mt-2">Compete every week and earn exclusive rewards.</p>
-              </div>
-              <div className="max-w-3xl mx-auto mb-8">
-                <div className="bg-white dark:bg-gray-900 rounded-[32px] border border-gray-100 dark:border-gray-800 shadow-xl dark:shadow-gray-900/60 hover:shadow-2xl dark:hover:shadow-gray-900/80 hover:-translate-y-1 transition-all duration-300 p-10 md:p-16 text-center ring-1 ring-gray-100/50 dark:ring-gray-800/50">
-                  <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-orange-100 to-amber-100 dark:from-orange-500/20 dark:to-amber-500/20 flex items-center justify-center mb-8 shadow-lg shadow-orange-200/40 dark:shadow-orange-900/30 hover:scale-105 transition-transform duration-300">
-                    <Crown size={52} className="text-orange-500" strokeWidth={2.2} />
-                  </div>
-                  <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">Weekly Rankings</h2>
-                  <p className="text-lg text-gray-500 max-w-xl mx-auto leading-8">
-                    Weekly competitions are coming soon. Compete with other traders, improve your ranking, and unlock exclusive rewards every week.
-                  </p>
-                  <div className="w-28 h-1 bg-gradient-to-r from-orange-400 to-red-500 rounded-full mx-auto my-10"></div>
-                  <div className="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-500/10 dark:to-amber-500/10 rounded-2xl p-6 border border-orange-100/50 dark:border-orange-900/20 shadow-sm">
-                    <h3 className="font-semibold text-xl text-orange-600 mb-3">🚀 Future Feature</h3>
-                    <p className="text-gray-600 dark:text-gray-300 leading-7">
-                      Your weekly rank, streak, rewards, badges and seasonal achievements will appear here after the feature launches.
-                    </p>
-                  </div>
-                </div>
               </div>
             </>
           )}

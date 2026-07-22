@@ -14,6 +14,7 @@ const profileRoute = require("./src/routes/profileroute");
 const statsRoute = require("./src/routes/statsRoute");
 const aiRoute = require("./src/routes/aiRoute");
 const userRoute = require("./src/routes/userRouter");
+const notificationRoute = require("./src/routes/notificationRoute");
 
 const app = express();
 
@@ -37,6 +38,7 @@ app.use("/api/profile",profileRoute);
 app.use("/api/stats",statsRoute);
 app.use("/api/ai",aiRoute);
 app.use("/api/user",userRoute)
+app.use("/api/notifications",notificationRoute);
 
 app.get("/",(req,resp) => {
     resp.send("Backend is working...");

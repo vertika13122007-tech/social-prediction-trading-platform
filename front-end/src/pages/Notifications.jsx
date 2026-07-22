@@ -5,120 +5,35 @@ import {
   Bell, BellRing, TrendingUp, DollarSign, Users,
   Clock, Trophy, Sparkles, CheckCheck, Trash2, Filter, X, CheckCircle, Circle
 } from "lucide-react";
-
-const INITIAL_NOTIFICATIONS = [
-  {
-    id: 1,
-    type: "welcome",
-    icon: <Sparkles size={20} className="text-blue-500" />,
-    iconBg: "bg-blue-100 dark:bg-blue-900/30",
-    iconGlow: "shadow-blue-200/60 dark:shadow-blue-900/40",
-    title: "Welcome to Live Market! 🎉",
-    desc: "Explore trades, make predictions, and climb the leaderboard. Your journey starts now!",
-    time: "Just now",
-    read: false,
-    tag: "System",
-    tagColor: "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400",
-  },
-  {
-    id: 2,
-    type: "trade",
-    icon: <TrendingUp size={20} className="text-emerald-500" />,
-    iconBg: "bg-emerald-100 dark:bg-emerald-900/30",
-    iconGlow: "shadow-emerald-200/60 dark:shadow-emerald-900/40",
-    title: "New Trending Trade 🔥",
-    desc: "AI vs Developers prediction is gaining massive traction. 234 investors already in!",
-    time: "2m ago",
-    read: false,
-    tag: "Trending",
-    tagColor: "bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400",
-  },
-  {
-    id: 3,
-    type: "payout",
-    icon: <DollarSign size={20} className="text-yellow-500" />,
-    iconBg: "bg-yellow-100 dark:bg-yellow-900/30",
-    iconGlow: "shadow-yellow-200/60 dark:shadow-yellow-900/40",
-    title: "Major Payout Alert 💰",
-    desc: "$50K has been distributed to winning investors in the Tesla stock prediction.",
-    time: "1h ago",
-    read: false,
-    tag: "Payout",
-    tagColor: "bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-500",
-  },
-  {
-    id: 4,
-    type: "investors",
-    icon: <Users size={20} className="text-purple-500" />,
-    iconBg: "bg-purple-100 dark:bg-purple-900/30",
-    iconGlow: "shadow-purple-200/60 dark:shadow-purple-900/40",
-    title: "500+ New Investors Joined",
-    desc: "The Tesla stock prediction reached a new milestone with over 500 new investors today.",
-    time: "2h ago",
-    read: true,
-    tag: "Milestone",
-    tagColor: "bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400",
-  },
-  {
-    id: 5,
-    type: "closing",
-    icon: <Clock size={20} className="text-orange-500" />,
-    iconBg: "bg-orange-100 dark:bg-orange-900/30",
-    iconGlow: "shadow-orange-200/60 dark:shadow-orange-900/40",
-    title: "Trade Closing Soon ⏰",
-    desc: "Lakers Championship prediction closes in 2 hours. Don't miss your chance to invest!",
-    time: "3h ago",
-    read: true,
-    tag: "Urgent",
-    tagColor: "bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400",
-  },
-  {
-    id: 6,
-    type: "leaderboard",
-    icon: <Trophy size={20} className="text-amber-500" />,
-    iconBg: "bg-amber-100 dark:bg-amber-900/30",
-    iconGlow: "shadow-amber-200/60 dark:shadow-amber-900/40",
-    title: "You Moved Up the Leaderboard! 🏆",
-    desc: "You jumped 5 spots to #127 on the global leaderboard. Keep trading to reach the top!",
-    time: "5h ago",
-    read: true,
-    tag: "Rank",
-    tagColor: "bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-500",
-  },
-  {
-    id: 7,
-    type: "trade",
-    icon: <TrendingUp size={20} className="text-teal-500" />,
-    iconBg: "bg-teal-100 dark:bg-teal-900/30",
-    iconGlow: "shadow-teal-200/60 dark:shadow-teal-900/40",
-    title: "Bitcoin Prediction Surging 📈",
-    desc: "Bitcoin to $150K prediction is up +156% ROI. 312 investors have already joined this trade.",
-    time: "8h ago",
-    read: true,
-    tag: "Trending",
-    tagColor: "bg-teal-100 text-teal-600 dark:bg-teal-900/30 dark:text-teal-400",
-  },
-  {
-    id: 8,
-    type: "system",
-    icon: <Bell size={20} className="text-blue-500" />,
-    iconBg: "bg-blue-100 dark:bg-blue-900/30",
-    iconGlow: "shadow-blue-200/60 dark:shadow-blue-900/40",
-    title: "Season 3 is Now Live! 🚀",
-    desc: "A new competitive season has started. Compete with top traders and win exclusive rewards.",
-    time: "1d ago",
-    read: true,
-    tag: "System",
-    tagColor: "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400",
-  },
-];
+import {
+    getNotifications,
+    markRead,
+    markAllRead,
+    deleteNotification,
+    clearNotifications
+} from "../api/notificationApi";
+import { notificationConfig } from "../utilis/notificationConfig";
 
 const FILTERS = ["All", "Unread", "Trending", "Payout", "Urgent", "System"];
+
+export function formatNotificationTime(date) {
+  const now = new Date();
+  const created = new Date(date);
+
+  const diff = Math.floor((now - created) / 1000);
+
+  if (diff < 60) return "Just now";
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+  if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`;
+
+  return created.toLocaleDateString();
+}
 
 export default function Notifications() {
   const [darkMode, setDarkMode] = useState(false);
   const [liveUpdatesOpen, setLiveUpdatesOpen] = useState(false);
-  const [notifications, setNotifications] = useState(INITIAL_NOTIFICATIONS);
+  const [notifications, setNotifications] = useState([]);
   const [activeFilter, setActiveFilter] = useState("All");
 
   useEffect(() => {
@@ -154,10 +69,17 @@ export default function Notifications() {
     return () => document.removeEventListener("keydown", handler);
   }, []);
 
-  const openNotif = (n) => {
-    markRead(n.id);
-    setSelectedNotif(n);
-  };
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+          const data = await getNotifications();
+          setNotifications(data);
+      } catch (error) {
+          console.error(error);
+      }
+    };
+    fetchNotifications();
+  }, []);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -167,18 +89,66 @@ export default function Notifications() {
     return n.tag === activeFilter;
   });
 
-  const markAllRead = () =>
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+  const handleMarkAllRead = async () => {
+    try {
+      await markAllRead();
+      setNotifications((prev) =>
+        prev.map((n) => ({
+          ...n,
+          read: true
+        }))
+      );
+    } catch (err) {
+        console.error(err);
+    } 
+  };
 
-  const markRead = (id) =>
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-    );
+  const handleMarkRead = async (id) => {
+    try {
+      await markRead(id);
+        setNotifications((prev) =>
+          prev.map((n) =>
+            n._id === id
+            ? { ...n, read: true }
+            : n
+          )
+        );
+    } catch (err) {
+        console.error(err);
+    }
+  };
 
-  const deleteNotification = (id) =>
-    setNotifications((prev) => prev.filter((n) => n.id !== id));
+  const openNotif = (n) => {
+    handleMarkRead(n._id);
+    setSelectedNotif(n);
 
-  const clearAll = () => setNotifications([]);
+  };
+
+  const handleDelete = async (id) => {
+    try {
+        await deleteNotification(id);
+        setNotifications((prev) =>
+            prev.filter((n) => n._id !== id)
+        );
+    } catch (err) {
+        console.error(err);
+    }
+  };
+
+  const clearAll = async () => {
+    try{
+      await clearNotifications();
+      setNotifications([]);
+    }catch(error){
+      console.error(error);
+    }
+  };
+
+  const selectedConfig = selectedNotif
+    ? notificationConfig[selectedNotif.type] || notificationConfig.system
+    : null;
+
+  const SelectedIcon = selectedConfig?.Icon;
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-gray-950 transition-colors duration-200">
@@ -219,7 +189,7 @@ export default function Notifications() {
               <div className="flex items-center gap-2 flex-wrap">
                 {unreadCount > 0 && (
                   <button
-                    onClick={markAllRead}
+                    onClick={handleMarkAllRead}
                     className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white/20 hover:bg-white/35 text-white text-sm font-medium transition-all duration-200 hover:scale-[1.03] active:scale-95 shadow-sm hover:shadow-md"
                   >
                     <CheckCheck size={15} />
@@ -281,9 +251,14 @@ export default function Notifications() {
           {/* ── Notifications list ── */}
           {filtered.length > 0 ? (
             <div className="space-y-3 pb-10">
-              {filtered.map((n) => (
+              {filtered.map((n) => {
+                const config = 
+                  notificationConfig[n.type] || notificationConfig.system;
+
+                const Icon = config.Icon;
+                return (
                 <div
-                  key={n.id}
+                  key={n._id}
                   onClick={() => openNotif(n)}
                   className={`group relative bg-white dark:bg-gray-900 rounded-2xl border p-4 sm:p-5 flex items-start gap-4 cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:scale-[1.01] ${
                     !n.read
@@ -297,8 +272,8 @@ export default function Notifications() {
                   )}
 
                   {/* Icon — scales on hover */}
-                  <div className={`w-11 h-11 rounded-xl ${n.iconBg} flex items-center justify-center shrink-0 shadow-sm ${n.iconGlow} group-hover:scale-110 group-hover:shadow-md transition-all duration-300`}>
-                    {n.icon}
+                  <div className={`w-11 h-11 rounded-xl ${config.iconBg} flex items-center justify-center`}>
+                    <Icon size={20} className={config.iconColor} />
                   </div>
 
                   {/* Content */}
@@ -308,26 +283,26 @@ export default function Notifications() {
                         <p className={`text-sm font-bold ${!n.read ? "text-gray-900 dark:text-white" : "text-gray-700 dark:text-gray-300"}`}>
                           {n.title}
                         </p>
-                        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${n.tagColor}`}>
-                          {n.tag}
+                        <span className={config.tagColor}>
+                          {config.tag}
                         </span>
                       </div>
                       <span className="text-[11px] text-gray-400 shrink-0">{n.time}</span>
                     </div>
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">
-                      {n.desc}
+                      {formatNotificationTime(n.createdAt)}
                     </p>
                   </div>
 
                   {/* Delete button */}
                   <button
-                    onClick={(e) => { e.stopPropagation(); deleteNotification(n.id); }}
+                    onClick={(e) => { e.stopPropagation(); handleDelete(n._id); }}
                     className="opacity-0 group-hover:opacity-100 transition-all duration-200 p-1.5 rounded-lg text-gray-300 hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 shrink-0 hover:scale-110 active:scale-95"
                   >
                     <Trash2 size={14} />
                   </button>
                 </div>
-              ))}
+              )})}
             </div>
           ) : (
             /* ── Empty state ── */
@@ -378,12 +353,14 @@ export default function Notifications() {
                 <div className="absolute -bottom-4 -left-4 w-16 h-16 rounded-full bg-white/10 pointer-events-none" />
                 <div className="relative z-10 flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <div className={`w-12 h-12 rounded-2xl ${selectedNotif.iconBg} flex items-center justify-center shadow-md`}>
-                      {selectedNotif.icon}
+                    <div
+                      className={`w-12 h-12 rounded-2xl ${selectedConfig.iconBg} flex items-center justify-center shadow-md`}
+                    >
+                      <SelectedIcon size={20} className={selectedConfig.iconColor} />
                     </div>
                     <div>
                       <span className="text-[10px] font-bold text-white/70 uppercase tracking-wider">
-                        {selectedNotif.tag}
+                        {selectedConfig.tag}
                       </span>
                       <h2 className="text-base font-bold text-white leading-tight mt-0.5">
                         {selectedNotif.title}
@@ -407,7 +384,7 @@ export default function Notifications() {
                 <div>
                   <p className="text-[11px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1.5">Message</p>
                   <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed bg-gray-50 dark:bg-gray-800/60 rounded-xl px-4 py-3 border border-gray-100 dark:border-gray-700">
-                    {selectedNotif.desc}
+                    {selectedNotif.message}
                   </p>
                 </div>
 
@@ -415,13 +392,13 @@ export default function Notifications() {
                 <div className="grid grid-cols-2 gap-3">
                   <div className="bg-gray-50 dark:bg-gray-800/60 rounded-xl px-4 py-3 border border-gray-100 dark:border-gray-700">
                     <p className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Category</p>
-                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${selectedNotif.tagColor}`}>
-                      {selectedNotif.tag}
+                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${selectedConfig.tagColor}`}>
+                      {selectedConfig.tag}
                     </span>
                   </div>
                   <div className="bg-gray-50 dark:bg-gray-800/60 rounded-xl px-4 py-3 border border-gray-100 dark:border-gray-700">
                     <p className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Received</p>
-                    <p className="text-xs font-semibold text-gray-700 dark:text-gray-300">{selectedNotif.time}</p>
+                    <p className="text-xs font-semibold text-gray-700 dark:text-gray-300">{formatNotificationTime(selectedNotif.createdAt)}</p>
                   </div>
                   <div className="bg-gray-50 dark:bg-gray-800/60 rounded-xl px-4 py-3 border border-gray-100 dark:border-gray-700">
                     <p className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Type</p>

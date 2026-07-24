@@ -2,6 +2,7 @@ const Market = require("../../db/schemas/Market");
 const Position = require("../../db/schemas/Position");
 
 const walletUtils = require("../utils/walletUtils");
+const { publishEvent } = require("../utils/eventService");
 
 const buyShares = async (req , resp ) => {
     try{
@@ -37,7 +38,7 @@ const buyShares = async (req , resp ) => {
                 : market.noPrice;
 
         const totalCost = sharePrice * shares;
-
+        
         await walletUtils.debitWallet(
             req.user.id,
             totalCost,
@@ -108,6 +109,13 @@ const buyShares = async (req , resp ) => {
 
         await market.save();
 
+        await publishEvent({
+            user: req.user.id,
+            type:"tradeUpdates",
+            title:"Invested Successful",
+            message:`You have invested ₹${totalCost} on "${market.title}". `
+        });
+
         return resp.status(200).json({
             message: "Shares purchased successfully",
             position
@@ -127,7 +135,7 @@ const getMyPosition = async ( req, resp ) => {
     try{
         const positions = await Position.find({
             userId: req.user.id,
-            sharess: {$gt: 0},
+            shares: {$gt: 0},
             settled: false
         }).populate(
             "marketId",

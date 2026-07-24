@@ -1,5 +1,6 @@
 const User = require("../../db/schemas/User");
 const Transactions = require("../../db/schemas/Transaction");
+const { publishEvent } = require("../utils/eventService");
 
 const getWallet = async (req,resp) => {
     try{
@@ -56,6 +57,13 @@ const depositMoney = async (req, res) => {
             description: "Wallet Deposit"
         });
 
+        await publishEvent({
+            user:user._id,
+            type:"payouts",
+            title:"Wallet Credicted",
+            message:`₹${amount} added to wallet`
+        });
+
         res.status(200).json({
             message: "Deposit successful",
             walletBalance: user.walletBalance
@@ -90,6 +98,13 @@ const withdrawMoney = async (req, res) => {
             type: "DEBIT",
             amount,
             description: "Wallet Withdrawal"
+        });
+
+        await publishEvent({
+            user:user._id,
+            type:"priceAlerts",
+            title:"Wallet Debited",
+            message:`₹${amount} is withdraw from wallet.`
         });
 
         res.status(200).json({

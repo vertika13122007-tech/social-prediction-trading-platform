@@ -6,7 +6,8 @@ const OTP = require("../../db/schemas/OTP");
 const generateOTP = require("../utils/generateOTP");
 const sendOTPEmail = require("../services/emailService");
 const Transactions = require("../../db/schemas/Transaction");
-const walletUtils = require("../utils/walletUtils")
+const walletUtils = require("../utils/walletUtils");
+const { publishEvent } = require("../utils/eventService");
 
 const registerUser = async (req,resp) =>{
     try{
@@ -99,6 +100,20 @@ const verifyOTP = async (req,resp) => {
         );
         
         await OTP.deleteOne({_id : otpRecord._id});
+
+        await publishEvent({
+            user: user._id,
+            type:"system",
+            title:"Welcome to Live Market 🎉",
+            message:"Your account has been created successfully."
+        });
+
+        await publishEvent({
+            userId,
+            type:"payout",
+            title:"Welcome Bonus Credited",
+            message:"1000 virtual coins has been added to you wallet."
+        });
 
         return resp.status(201).json({
             message: "Account has been verified",

@@ -502,44 +502,6 @@ export default function InvestModal({ trade, onClose }) {
                     ))}
                   </div>
                 </div>
-
-                {/* Market Insights — expandable */}
-                <div className="rounded-2xl border border-gray-100 dark:border-gray-800 overflow-hidden">
-                  <button
-                    onClick={() => setInsightsOpen((v) => !v)}
-                    className="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
-                  >
-                    <div className="flex items-center gap-2">
-                      <Activity size={14} className="text-blue-500" />
-                      <span className="text-xs font-bold text-gray-700 dark:text-gray-300">Why this prediction?</span>
-                    </div>
-                    {insightsOpen ? <ChevronUp size={14} className="text-gray-400" /> : <ChevronDown size={14} className="text-gray-400" />}
-                  </button>
-                  <AnimatePresence>
-                    {insightsOpen && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.25 }}
-                        className="overflow-hidden border-t border-gray-100 dark:border-gray-800"
-                      >
-                        <div className="grid grid-cols-2 gap-2 p-4">
-                          {INSIGHTS.map((ins, i) => (
-                            <div key={i} className="flex items-start gap-2 p-2.5 rounded-xl bg-gray-50 dark:bg-gray-800/60">
-                              <span className="mt-0.5 shrink-0">{ins.icon}</span>
-                              <div>
-                                <p className="text-[10px] text-gray-400 dark:text-gray-500">{ins.label}</p>
-                                <p className={`text-xs font-bold ${ins.color} dark:brightness-125`}>{ins.value}</p>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-
               </div>
 
               {/* Sticky bottom buttons */}

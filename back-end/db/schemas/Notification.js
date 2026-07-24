@@ -26,7 +26,7 @@ const notificationSchema = new mongoose.Schema(
         required:true
     },
 
-    desc:{
+    message:{
         type:String,
         required:true
     },

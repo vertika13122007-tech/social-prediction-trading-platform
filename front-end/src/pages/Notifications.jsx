@@ -13,6 +13,7 @@ import {
     clearNotifications
 } from "../api/notificationApi";
 import { notificationConfig } from "../utilis/notificationConfig";
+import { useAuth } from "../context/AuthContext";
 
 const FILTERS = ["All", "Unread", "Trending", "Payout", "Urgent", "System"];
 
@@ -35,6 +36,7 @@ export default function Notifications() {
   const [liveUpdatesOpen, setLiveUpdatesOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [activeFilter, setActiveFilter] = useState("All");
+  const { token } = useAuth();
 
   useEffect(() => {
     document.documentElement.classList.remove("dark");
@@ -84,9 +86,16 @@ export default function Notifications() {
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   const filtered = notifications.filter((n) => {
+
+    const config = 
+      notificationConfig[n.type] ||
+      notificationConfig.system;
+
     if (activeFilter === "All") return true;
     if (activeFilter === "Unread") return !n.read;
-    return n.tag === activeFilter;
+
+    return config.tag === activeFilter;
+
   });
 
   const handleMarkAllRead = async () => {
@@ -287,10 +296,10 @@ export default function Notifications() {
                           {config.tag}
                         </span>
                       </div>
-                      <span className="text-[11px] text-gray-400 shrink-0">{n.time}</span>
+                      <span className="text-[11px] text-gray-400 shrink-0">{formatNotificationTime(n.createdAt)}</span>
                     </div>
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">
-                      {formatNotificationTime(n.createdAt)}
+                      {n.message}
                     </p>
                   </div>
 

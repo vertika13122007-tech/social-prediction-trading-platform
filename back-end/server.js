@@ -3,6 +3,9 @@ require("dotenv").config();
 const express = require('express');
 const cors = require("cors");
 const connectDB = require("./db/config");
+
+require("./src/cron/marketReminderCron");
+
 const authRoutes = require("./src/routes/authroute");
 const walletRoute = require("./src/routes/walletroute");
 const marketRoute = require("./src/routes/marketRoute");

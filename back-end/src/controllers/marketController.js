@@ -1,6 +1,8 @@
 const Market = require("../../db/schemas/Market");
 const Position = require("../../db/schemas/Position");
 const walletUtils = require("../utils/walletUtils");
+const User = require("../../db/schemas/User");
+const { publishEvent } = require("../utils/eventService");
 
 const createMarket = async (req, res) => {
     try {
@@ -22,8 +24,22 @@ const createMarket = async (req, res) => {
             description,
             category,
             endsAt,
-            createdBy: req.user.id
+            createdBy: req.user.id,
+            closingReminderSent:false
         });
+
+        const users = await User.find({}, "_id");
+
+        for (const user of users) {
+
+            await publishEvent({
+                user: user._id,
+                type: "marketing",
+                title: "New Prediction Live",
+                message: `"${market.title}" is now open for trading!`
+            });
+
+        }
 
         return res.status(201).json({
             message: "Market created successfully.",
@@ -219,6 +235,13 @@ const settleMarket = async (req,resp) =>{
                             `Settlement payout - ${market.title}`
                         );
 
+                await publishEvent({
+                    user: position.userId,
+                    type: "payouts",
+                    title: "Prediction Won 🎉",
+                    message: `Congratulations! You won ₹${payout} in "${market.title}".`
+                });
+
                 position.settled = true;
                 position.result = "WIN";
                 position.settledPrice = 10;
@@ -235,6 +258,13 @@ const settleMarket = async (req,resp) =>{
                 position.payout = 0;
                 position.profitLoss = -(position.averageBuyPrice * position.shares);
                 position.settledAt = settlementTime;
+
+                await publishEvent({
+                    user: position.userId,
+                    type: "tradeUpdates",
+                    title: "Prediction Lost",
+                    message: `Your prediction "${market.title}" did not win. Better luck next time!`
+                });
 
                 await position.save();
 

@@ -1,5 +1,6 @@
 const User = require("../../db/schemas/User");
 const Transaction = require("../../db/schemas/Transaction");
+const { publishEvent } = require("./eventService");
 
 const creditWallet = async(
     userId,
@@ -26,6 +27,14 @@ const creditWallet = async(
         amount,
         description
     });
+
+    await publishEvent({
+        user: user._id,
+        type: "priceAlerts",
+        title: "Wallet Credited",
+        message: `₹${amount} hass been added to your wallet.`
+    });
+
     return user;
 }
 
@@ -57,6 +66,13 @@ const debitWallet = async(
         type,
         amount,
         description
+    });
+
+    await publishEvent({
+        user: user._id,
+        type: "priceAlerts",
+        title: "Wallet Debited",
+        message: `₹${amount} deducted from your wallet.`
     });
 
     return user;

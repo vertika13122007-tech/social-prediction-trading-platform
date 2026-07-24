@@ -90,7 +90,12 @@ const marketSchema = new mongoose.Schema(
         settledAt: {
             type: Date,
             default: null
-        }
+        },
+
+        closingReminderSent: {
+            type: Boolean,
+            default: false
+        },
     },
     {
         timestamps: true

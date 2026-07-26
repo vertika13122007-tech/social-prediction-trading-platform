@@ -3,7 +3,7 @@ const { calculatePortfolio } = require("./portfolioService");
 
 async function getUserRank(userId){
 
-    const users = await User.find({});
+    const users = await User.find({role:"USER"});
 
     const leaderboard = await Promise.all(
         users.map(async(user)=>{

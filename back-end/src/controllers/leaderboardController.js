@@ -5,7 +5,7 @@ const Market  = require("../../db/schemas/Market");
 const getLeaderboard = async ( req,resp ) => {
     try{
 
-        const users = await User.find({});
+        const users = await User.find({role: "USER"});
 
         const leaderboard = await Promise.all(
             users.map(async (user) => {

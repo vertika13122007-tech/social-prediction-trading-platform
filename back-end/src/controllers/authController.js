@@ -109,7 +109,7 @@ const verifyOTP = async (req,resp) => {
         });
 
         await publishEvent({
-            userId,
+            user:user._id,
             type:"payout",
             title:"Welcome Bonus Credited",
             message:"1000 virtual coins has been added to you wallet."

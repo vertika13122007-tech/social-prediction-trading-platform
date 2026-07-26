@@ -14,6 +14,7 @@ import {
 } from "../api/notificationApi";
 import { notificationConfig } from "../utilis/notificationConfig";
 import { useAuth } from "../context/AuthContext";
+import { socket } from "../socket/socket";
 
 const FILTERS = ["All", "Unread", "Trending", "Payout", "Urgent", "System"];
 
@@ -81,6 +82,19 @@ export default function Notifications() {
       }
     };
     fetchNotifications();
+  }, []);
+
+  useEffect(() => {
+    const handleNewNotification = (notification) => {
+      setNotifications((prev) => [
+        notification,
+          ...prev,
+      ]);
+    };
+    socket.on("newNotification", handleNewNotification);
+    return () => {
+        socket.off("newNotification", handleNewNotification);
+    };
   }, []);
 
   const unreadCount = notifications.filter((n) => !n.read).length;

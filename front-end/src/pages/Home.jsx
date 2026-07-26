@@ -11,6 +11,7 @@ import { getOpenMarkets } from "../api/marketApi";
 import { useAuth } from "../context/AuthContext";
 import { sendMessage } from "../api/chatApi";
 import { motion } from "framer-motion";
+import { socket } from "../socket/socket";
 
 const SORT_OPTIONS = [
   { label: "Newest First",    icon: "🆕" },
@@ -155,12 +156,53 @@ export default function Home({ firstVisit = false, onMount }) {
       }catch(error){
         console.error(error);
       }
+    };
+    fetchMarkets();
+  },[activeCategory,sortBy]);
 
+  import { socket } from "../socket/socket";
+
+useEffect(() => {
+    console.log("Socket Connected:", socket.connected);
+
+    socket.on("connect", () => {
+        console.log("Connected!", socket.id);
+    });
+
+    socket.onAny((event, ...args) => {
+        console.log(event, args);
+    });
+
+    return () => {
+        socket.off("connect");
+        socket.offAny();
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleMarketUpdate = (updatedMarket) => {
+      console.log("Received socket event:", updatedMarket);
+
+      setTrades((prevTrades) =>
+        prevTrades.map((trade) =>
+          trade.id === updatedMarket.marketId
+            ? {
+                ...trade,
+                yesPrice: updatedMarket.yesPrice,
+                noPrice: updatedMarket.noPrice,
+                poolValue: updatedMarket.totalVolume,
+              }
+            : trade
+        )
+      );
     };
 
-    fetchMarkets();
+    socket.on("marketUpdated", handleMarketUpdate);
 
-},[activeCategory,sortBy]);
+    return () => {
+      socket.off("marketUpdated", handleMarketUpdate);
+    };
+  }, []);
 
   // Toggle bookmark on a trade
   const toggleSave = (id) => {

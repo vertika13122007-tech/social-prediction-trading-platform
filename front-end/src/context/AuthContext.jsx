@@ -1,4 +1,6 @@
 import { createContext, useContext, useState } from "react";
+import { socket } from "../socket/socket";
+import { useEffect } from "react";
 
 const AuthContext = createContext();
 
@@ -19,9 +21,14 @@ export function AuthProvider({ children }) {
 
         setToken(token);
         setUser(user);
+
+        socket.connect();
+
     };
 
     const logout = () => {
+
+        socket.disconnect();
 
         localStorage.removeItem("token");
         localStorage.removeItem("user");
@@ -29,6 +36,28 @@ export function AuthProvider({ children }) {
         setToken(null);
         setUser(null);
     };
+
+    useEffect(() => {
+
+        if (!user) return;
+
+        const handleConnect = () => {
+            console.log("✅ Connected:", socket.id);
+            socket.emit("join", user._id);
+            console.log("✅ Join emitted");
+        };
+
+        socket.on("connect", handleConnect);
+
+        if (socket.connected) {
+            socket.emit("join", user._id);
+        }
+
+        return () => {
+            socket.off("connect", handleConnect);
+        };
+
+    }, [user]);
 
     return (
         <AuthContext.Provider

@@ -82,7 +82,7 @@ export default function StatsCard() {
           </div>
           <p className="text-xs text-gray-400 dark:text-gray-500 mb-0.5">{stat.label}</p>
           <p className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">
-            {stat.value}
+            {stat.value.toFixed(0)}
           </p>
         </div>
       ))}

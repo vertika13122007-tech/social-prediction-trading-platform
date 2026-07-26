@@ -75,7 +75,7 @@ export default function TradeCard({ trade, onToggleSave }) {
             </p>
           </div>
           <div className="bg-gray-50 dark:bg-gray-800/60 rounded-xl p-2.5">
-            <div className="flex justify-between text-xs">
+            <div className="flex justify-between text-xs mb-2">
               <span className="text-emerald-600 font-bold">
                 YES ₹{yesPrice}
               </span>
@@ -83,10 +83,14 @@ export default function TradeCard({ trade, onToggleSave }) {
                 NO ₹{noPrice}
               </span>
             </div>
-            <div className="mt-2 h-2 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
+            <div className="h-2 rounded-full overflow-hidden flex bg-gray-200 dark:bg-gray-700">
               <div
-                className="h-full bg-emerald-500"
+                className="bg-emerald-500 transition-all duration-500"
                 style={{ width: `${yesPrice * 10}%` }}
+              />
+              <div
+                className="bg-red-500 transition-all duration-500"
+                style={{ width: `${noPrice * 10}%` }}
               />
             </div>
           </div>

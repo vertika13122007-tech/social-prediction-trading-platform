@@ -1,3 +1,4 @@
+const { getIO } = require( "../socket/socket");
 const { createNotification } = require("./notificationService");
 
 const publishEvent = async ({
@@ -7,12 +8,16 @@ const publishEvent = async ({
     message,
 }) => {
 
-    await createNotification({
+    notifications = await createNotification({
         user,
         type,
         title,
         message,
     });
+
+    const io = getIO();
+
+    io.to(user.toString()).emit("newNotification",notifications);
 
 };
 

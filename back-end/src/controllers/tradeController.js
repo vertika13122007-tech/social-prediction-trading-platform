@@ -4,8 +4,12 @@ const Position = require("../../db/schemas/Position");
 const walletUtils = require("../utils/walletUtils");
 const { publishEvent } = require("../utils/eventService");
 
+const { getIO } = require("../socket/socket");
+
 const buyShares = async (req , resp ) => {
     try{
+        const io = getIO();
+        
         const {
             marketId,
             side,
@@ -107,7 +111,28 @@ const buyShares = async (req , resp ) => {
             market.participationCount += 1;
         }
 
+        const totalInvestment = market.totalYesInvestment + market.totalNoInvestment;
+
+        if(totalInvestment > 0 ){
+            market.yesPrice = Number(
+                ((market.totalYesInvestment/totalInvestment)*10).toFixed(2)
+            );
+
+            market.noPrice = Number(
+                ((10 - market.yesPrice).toFixed(2))
+            );
+        }
+
         await market.save();
+
+        io.emit("marketUpdated", {
+            marketId: market._id,
+            yesPrice: market.yesPrice,
+            noPrice: market.noPrice,
+            totalYesInvestment: market.totalYesInvestment,
+            totalNoInvestment: market.totalNoInvestment,
+            totalVolume: market.totalVolume,
+        });
 
         await publishEvent({
             user: req.user.id,

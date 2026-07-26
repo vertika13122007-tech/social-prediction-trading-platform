@@ -153,8 +153,8 @@ export default function Leaderboard() {
                   <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl p-6 text-white text-center shadow-xl hover:-translate-y-2 hover:shadow-[0_25px_50px_rgba(59,130,246,0.35)] transition-all duration-300">
                     <div className="text-5xl mb-3">🥈</div>
                     <h3 className="text-xl font-bold">{topTraders[1]?.name?? "No Trader Yet"}</h3>
-                    <p className="text-3xl font-bold mt-3">{topTraders[1]?.totalProfitLoss}</p>
-                    <p className="mt-3 text-sm">{topTraders[1]?.totalInvested}</p>
+                    <p className="text-3xl font-bold mt-3">{topTraders[1]?.totalProfitLoss.toFixed(0)}</p>
+                    <p className="mt-3 text-sm">{topTraders[1]?.totalInvested.toFixed(0)}</p>
                     <div className="mt-4 bg-white/20 rounded-full py-1">Rank #2</div>
                   </div>
                 </div>
@@ -163,8 +163,8 @@ export default function Leaderboard() {
                   <div className="bg-gradient-to-br from-yellow-400 via-orange-400 to-orange-600 rounded-3xl p-8 text-white text-center shadow-2xl md:scale-105 hover:-translate-y-2 hover:shadow-[0_30px_60px_rgba(251,146,60,0.45)] transition-all duration-300">
                     <div className="text-6xl mb-4">👑</div>
                     <h3 className="text-2xl font-bold">{topTraders[0]?.name?? "No Trader Yet"}</h3>
-                    <p className="text-4xl font-bold mt-4">{topTraders[0]?.totalProfitLoss}</p>
-                    <p className="mt-4">{topTraders[0]?.totalInvested}</p>
+                    <p className="text-4xl font-bold mt-4">{topTraders[0]?.totalProfitLoss.toFixed(0)}</p>
+                    <p className="mt-4">{topTraders[0]?.totalInvested.toFixed(0)}</p>
                     <div className="mt-5 bg-white/20 rounded-full py-2 font-semibold">🏆 Rank #1</div>
                   </div>
                 </div>
@@ -173,8 +173,8 @@ export default function Leaderboard() {
                   <div className="bg-gradient-to-br from-orange-500 to-red-600 rounded-3xl p-6 text-white text-center shadow-xl hover:-translate-y-2 hover:shadow-[0_25px_50px_rgba(239,68,68,0.35)] transition-all duration-300">
                     <div className="text-5xl mb-3">🥉</div>
                     <h3 className="text-xl font-bold">{topTraders[2]?.name?? "No Trader Yet"}</h3>
-                    <p className="text-3xl font-bold mt-3">{topTraders[2]?.totalProfitLoss}</p>
-                    <p className="mt-3 text-sm">{topTraders[2]?.totalInvested}</p>
+                    <p className="text-3xl font-bold mt-3">{topTraders[2]?.totalProfitLoss.toFixed(0)}</p>
+                    <p className="mt-3 text-sm">{topTraders[2]?.totalInvested.toFixed(0)}</p>
                     <div className="mt-4 bg-white/20 rounded-full py-1">Rank #3</div>
                   </div>
                 </div>
@@ -244,7 +244,7 @@ export default function Leaderboard() {
                       <div className="flex gap-8">
                         <div>
                           <p className="text-sm text-gray-400">Volume</p>
-                          <p className="text-3xl font-bold text-green-600 group-hover:scale-105 transition-transform duration-200">₹{trade.totalVolume}</p>
+                          <p className="text-3xl font-bold text-green-600 group-hover:scale-105 transition-transform duration-200">₹{trade.totalVolume.toFixed(2)}</p>
                         </div>
                         <div>
                           <p className="text-sm text-gray-400">Trade Value</p>
@@ -274,7 +274,7 @@ export default function Leaderboard() {
                     <div className="w-20 h-20 mx-auto rounded-full bg-white/20 flex items-center justify-center text-4xl mb-4">👨‍💻</div>
                     <p className="text-lg font-bold">{topCreators[1]?.name?? "No Creators Yet"}</p>
                     <div className="mt-5 space-y-2 text-sm">
-                      <p>💸 Volume : {topCreators[1]?.totalVolume}</p>
+                      <p>💸 Volume : {topCreators[1]?.totalVolume.toFixed(0)}</p>
                       <p>📊 {topCreators[1]?.totalMarket} Markets</p>
                     </div>
                     <div className="mt-5 bg-white/20 rounded-full py-2 font-semibold">🥈 Rank #2</div>
@@ -286,7 +286,7 @@ export default function Leaderboard() {
                     <div className="w-24 h-24 mx-auto rounded-full bg-white/20 flex items-center justify-center text-5xl mb-5">👑</div>
                     <p className="text-2xl font-bold">{topCreators[0]?.name?? "No Creators Yet"}</p>
                     <div className="mt-6 space-y-2">
-                      <p className="text-lg">💸 Volume :  {topCreators[0]?.totalVolume}</p>
+                      <p className="text-lg">💸 Volume :  {topCreators[0]?.totalVolume.toFixed(0)}</p>
                       <p className="text-lg">📊 {topCreators[0]?.totalMarket} Markets</p>
                     </div>
                     <div className="mt-6 bg-white/20 rounded-full py-2 font-semibold">🏆 Rank #1</div>
@@ -298,7 +298,7 @@ export default function Leaderboard() {
                     <div className="w-20 h-20 mx-auto rounded-full bg-white/20 flex items-center justify-center text-4xl mb-4">🚀</div>
                     <p className="text-lg font-bold">{topCreators[2]?.name?? "No Creators Yet"}</p>
                     <div className="mt-5 space-y-2 text-sm">
-                      <p>💸 Volume : {topCreators[2]?.totalVolume}</p>
+                      <p>💸 Volume : {topCreators[2]?.totalVolume.toFixed(0)}</p>
                       <p>📊 {topCreators[2]?.totalMarket} Markets</p>
                     </div>
                     <div className="mt-5 bg-white/20 rounded-full py-2 font-semibold">🥉 Rank #3</div>

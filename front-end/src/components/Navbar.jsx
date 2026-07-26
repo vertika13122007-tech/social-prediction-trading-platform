@@ -156,7 +156,7 @@ export default function Navbar({ darkMode, setDarkMode, liveUpdatesOpen, setLive
             }`}
           >
             <span className="text-xs">🪙</span>
-            <span>{balance}</span>
+            <span>{balance.toFixed(0)}</span>
           </button>
 
           {/* ── Profile Avatar + Dropdown ── */}

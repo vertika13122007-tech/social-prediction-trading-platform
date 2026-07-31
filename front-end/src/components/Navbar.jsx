@@ -7,6 +7,9 @@ import {
 } from "lucide-react";
 import { getWallet } from "../api/walletApi";
 import { useAuth } from "../context/AuthContext";
+import { useNotification } from "../context/NotificationContext";
+import { socket } from "../socket/socket";
+import api from "../api/axios";
 
 export default function Navbar({ darkMode, setDarkMode, liveUpdatesOpen, setLiveUpdatesOpen, searchTerm, setSearchTerm }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -70,6 +73,35 @@ export default function Navbar({ darkMode, setDarkMode, liveUpdatesOpen, setLive
   };
 
   const { user } = useAuth();
+
+  const { count, setCount } = useNotification();
+
+  useEffect(() => {
+    if (!user) return;
+    async function loadCount() {
+      const res = await api.get("/notifications/count");
+      setCount(res.data.count);
+    }
+    loadCount();
+  }, [user]);
+
+  useEffect(() => {
+    socket.on("newNotification", () => {
+        setCount(prev => prev + 1);
+      });
+    return () => {
+      socket.off("newNotification");
+    };
+  }, [setCount]);
+
+ useEffect(() => {
+    if (!onNotifications) return;
+    async function markRead() {
+      await api.patch("/notifications/read-all");
+      setCount(0);
+    }
+    markRead();
+  }, [onNotifications]);
 
   return (
     <nav className="sticky top-0 z-50 bg-white dark:bg-gray-950 border-b border-gray-100 dark:border-gray-800 shadow-sm">
@@ -138,10 +170,22 @@ export default function Navbar({ darkMode, setDarkMode, liveUpdatesOpen, setLive
             }`}
           >
             <Bell size={18} />
-            {!onNotifications && (
-              <span className="absolute top-1 right-1 w-4 h-4 bg-blue-600 text-white text-[9px] rounded-full flex items-center justify-center font-bold">
-                3
-              </span>
+            {!onNotifications && count > 0 && (
+              <span
+                className="absolute -top-1 -right-1
+                          bg-red-500
+                          text-white
+                          rounded-full
+                          w-5
+                          h-5
+                          flex
+                          items-center
+                          justify-center
+                          text-[10px]
+                          font-bold"
+            >
+                {count}
+            </span>
             )}
           </button>
 

@@ -47,10 +47,12 @@ export function AuthProvider({ children }) {
             console.log("✅ Join emitted");
         };
 
+        console.log(user._id);
+
         socket.on("connect", handleConnect);
 
         if (socket.connected) {
-            socket.emit("join", user._id);
+            socket.emit("join", user._id || user.id);
         }
 
         return () => {

@@ -160,9 +160,7 @@ export default function Home({ firstVisit = false, onMount }) {
     fetchMarkets();
   },[activeCategory,sortBy]);
 
-  import { socket } from "../socket/socket";
-
-useEffect(() => {
+  useEffect(() => {
     console.log("Socket Connected:", socket.connected);
 
     socket.on("connect", () => {

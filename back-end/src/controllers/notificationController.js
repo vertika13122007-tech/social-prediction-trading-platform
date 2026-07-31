@@ -70,10 +70,30 @@ const clearAll = async(req,res)=>{
 
 };
 
+const getUnreadCount = async (req, res) => {
+    try {
+
+        const count = await Notification.countDocuments({
+            user: req.user.id,
+            read: false
+        });
+
+        return res.json({ count });
+
+    } catch (err) {
+
+        return res.status(500).json({
+            message: "Failed"
+        });
+
+    }
+};
+
 module.exports = {
     getNotifications,
     markRead,
     markAllRead,
     deleteNotification,
-    clearAll
+    clearAll,
+    getUnreadCount
 }

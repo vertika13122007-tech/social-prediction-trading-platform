@@ -3,9 +3,12 @@ const Position = require("../../db/schemas/Position");
 const walletUtils = require("../utils/walletUtils");
 const User = require("../../db/schemas/User");
 const { publishEvent } = require("../utils/eventService");
+const { emitLiveUpdate } = require("../utils/liveUpdateService");
 
 const createMarket = async (req, res) => {
     try {
+        const io = req.app.get("io");
+
         const {
             title,
             description,
@@ -40,6 +43,12 @@ const createMarket = async (req, res) => {
             });
 
         }
+
+        emitLiveUpdate(io, {
+            type: "market",
+            title: "New Trade",
+            desc: `${market.title} has been created!!`,
+        });
 
         return res.status(201).json({
             message: "Market created successfully.",
@@ -183,6 +192,7 @@ const declareWinner = async ( req, resp ) =>{
 
 const settleMarket = async (req,resp) =>{
     try{
+        const io = req.app.get("io");
 
         const market = await Market.findById(req.params.id);
 
@@ -276,6 +286,12 @@ const settleMarket = async (req,resp) =>{
         market.settledAt = settlementTime;
 
         await market.save();
+
+        emitLiveUpdate(io, {
+            type: "market",
+            title: "Winner declaration",
+            desc: `${market.title}'s winners have been rewarded!!`,
+        });
 
         return resp.status(200).json({
             message:"Market settled successfully",

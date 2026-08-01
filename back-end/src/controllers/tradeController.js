@@ -1,14 +1,19 @@
 const Market = require("../../db/schemas/Market");
 const Position = require("../../db/schemas/Position");
+const User = require("../../db/schemas/User");
 
 const walletUtils = require("../utils/walletUtils");
 const { publishEvent } = require("../utils/eventService");
 
 const { getIO } = require("../socket/socket");
 
+const { emitLiveUpdate } = require("../utils/liveUpdateService");
+
 const buyShares = async (req , resp ) => {
     try{
         const io = getIO();
+
+        const user = await User.findById(req.user.id).select("name");
         
         const {
             marketId,
@@ -24,9 +29,15 @@ const buyShares = async (req , resp ) => {
             });
         }
 
-        if (market.status !== "OPEN"){
+        if (
+            market.status === "OPEN" &&
+            market.endsAt <= new Date()
+        ) {
+            market.status = "CLOSED";
+            await market.save();
+
             return resp.status(400).json({
-                message: "Market is closed"
+                message: "Market has closed."
             });
         }
 
@@ -109,6 +120,12 @@ const buyShares = async (req , resp ) => {
 
         if(!alreadyInvested){
             market.participationCount += 1;
+
+            emitLiveUpdate(io, {
+                type: "system",
+                title: "New Participant",
+                desc: `${user.name} joined "${market.title}"`,
+            });
         }
 
         const totalInvestment = market.totalYesInvestment + market.totalNoInvestment;
@@ -121,6 +138,12 @@ const buyShares = async (req , resp ) => {
             market.noPrice = Number(
                 ((10 - market.yesPrice).toFixed(2))
             );
+
+            emitLiveUpdate(io, {
+                type: "market",
+                title: "Price Updated",
+                desc: `${market.title} • YES ₹${market.yesPrice} • NO ₹${market.noPrice}`,
+            });
         }
 
         await market.save();
@@ -139,6 +162,12 @@ const buyShares = async (req , resp ) => {
             type:"tradeUpdates",
             title:"Invested Successful",
             message:`You have invested ₹${totalCost} on "${market.title}". `
+        });
+
+        emitLiveUpdate(io, {
+            type: "trade",
+            title: "New Trade",
+            desc: `${user.name} invested ₹${totalCost.toFixed(2)} in ${market.title}`,
         });
 
         return resp.status(200).json({
@@ -183,6 +212,7 @@ const getMyPosition = async ( req, resp ) => {
 const sellShares = async (req , resp) => {
 
     try{
+        const user = await User.findById(req.user.id).select("name");
 
         const {
             marketId,
@@ -198,12 +228,18 @@ const sellShares = async (req , resp) => {
             });
         }
 
-        if (market.status !== "OPEN"){
+        if (
+            market.status === "OPEN" &&
+            market.endsAt <= new Date()
+        ) {
+            market.status = "CLOSED";
+            await market.save();
+
             return resp.status(400).json({
-                message: "Market is closed"
+                message: "Market has closed."
             });
         }
-
+        
         const position = await Position.findOne({
             userId: req.user.id,
             marketId,
@@ -271,6 +307,12 @@ const sellShares = async (req , resp) => {
             await position.save();
 
         }
+
+        emitLiveUpdate(io, {
+            type: "trade",
+            title: "New Trade",
+            desc: `${user.name} sold ₹${shares} from ${market.title}`,
+        });
 
         return resp.status(200).json({
             message: "Shares sold successfully",

@@ -4,8 +4,6 @@ const express = require('express');
 const cors = require("cors");
 const connectDB = require("./db/config");
 
-require("./src/cron/marketReminderCron");
-
 const authRoutes = require("./src/routes/authroute");
 const walletRoute = require("./src/routes/walletroute");
 const marketRoute = require("./src/routes/marketRoute");
@@ -18,6 +16,7 @@ const statsRoute = require("./src/routes/statsRoute");
 const aiRoute = require("./src/routes/aiRoute");
 const userRoute = require("./src/routes/userRouter");
 const notificationRoute = require("./src/routes/notificationRoute");
+const liveUpdateRoute = require("./src/routes/liveUpdateRoute");
 
 const app = express();
 
@@ -26,6 +25,9 @@ app.use(cors({
 }));
 
 connectDB();
+
+require("./src/cron/marketReminderCron");
+require("./src/cron/closeMarketCron");
 
 const User = require("./db/schemas/User");
 
@@ -42,6 +44,7 @@ app.use("/api/stats",statsRoute);
 app.use("/api/ai",aiRoute);
 app.use("/api/user",userRoute)
 app.use("/api/notifications",notificationRoute);
+app.use("/api/live-updates", liveUpdateRoute);
 
 app.get("/",(req,resp) => {
     resp.send("Backend is working...");

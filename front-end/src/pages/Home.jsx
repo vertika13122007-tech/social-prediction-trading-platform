@@ -7,7 +7,7 @@ import CategoryTabs from "../components/CategoryTabs";
 import TradeCard from "../components/TradeCard";
 import LiveUpdates from "../components/LiveUpdates";
 import { SlidersHorizontal, ChevronDown, HelpCircle, X, Sparkles, ExternalLink, BookOpen, HeadphonesIcon } from "lucide-react";
-import { getOpenMarkets } from "../api/marketApi";
+import { getOpenMarkets,saveMarket,unsaveMarket } from "../api/marketApi";
 import { useAuth } from "../context/AuthContext";
 import { sendMessage } from "../api/chatApi";
 import { motion } from "framer-motion";
@@ -149,7 +149,7 @@ export default function Home({ firstVisit = false, onMount }) {
               noPrice: market.noPrice || 0,
               endsAt: market.endsAt,
               investors: market.participationCount || 0,
-              saved: false,
+              saved: market.saved,
               }))
             );
 
@@ -202,11 +202,28 @@ export default function Home({ firstVisit = false, onMount }) {
     };
   }, []);
 
-  // Toggle bookmark on a trade
-  const toggleSave = (id) => {
-    setTrades((prev) =>
-      prev.map((t) => t.id === id ? { ...t, saved: !t.saved } : t)
-    );
+  const toggleSave = async (id) => {
+    try {
+      const trade = trades.find(t => t.id === id);
+      if (!trade) return;
+
+      if (trade.saved) {
+        await unsaveMarket(id);
+      } else {
+        await saveMarket(id);
+      }
+
+      setTrades(prev =>
+        prev.map(t =>
+          t.id === id
+            ? { ...t, saved: !t.saved }
+              : t
+            )
+        );
+
+    } catch (error) {
+        console.error(error);
+    }
   };
 
   const savedCount = trades.filter((t) => t.saved).length;

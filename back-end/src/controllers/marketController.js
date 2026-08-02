@@ -71,12 +71,20 @@ const getAllMarkets = async (req, res) => {
         const markets = await Market.find({
             status: "OPEN"
         }).sort({ createdAt: -1 });
-
-        return res.status(200).json(markets);
+        const user = await User.findById(req.user.id)
+            .select("savedMarkets");
+        const savedIds = new Set(
+            user.savedMarkets.map(id => id.toString())
+        );
+        const result = markets.map(market => {
+        const obj = market.toObject();
+            obj.saved = savedIds.has(market._id.toString());
+            return obj;
+        });
+        return res.status(200).json(result);
 
     } catch (error) {
         console.error(error);
-
         return res.status(500).json({
             message: "Failed to fetch markets."
         });
@@ -387,7 +395,6 @@ const getOpenMarkets = async (req, res) => {
             status: "OPEN"
         };
 
-        // Category filter
         if (
             req.query.category &&
             req.query.category !== "Home"
@@ -397,7 +404,7 @@ const getOpenMarkets = async (req, res) => {
 
         let sortOption = { createdAt: -1 };
 
-        switch(req.query.sort){
+        switch (req.query.sort) {
 
             case "oldest":
                 sortOption = { createdAt: 1 };
@@ -429,7 +436,25 @@ const getOpenMarkets = async (req, res) => {
             .sort(sortOption)
             .limit(12);
 
-        return res.status(200).json(markets);
+        // NEW CODE
+        const user = await User.findById(req.user.id)
+            .select("savedMarkets");
+
+        const savedIds = new Set(
+            user.savedMarkets.map(id => id.toString())
+        );
+
+        const result = markets.map(market => {
+            const obj = market.toObject();
+
+            obj.saved = savedIds.has(
+                market._id.toString()
+            );
+
+            return obj;
+        });
+
+        return res.status(200).json(result);
 
     } catch (error) {
 

@@ -25,3 +25,13 @@ export const getOpenMarkets = async (
 
     return response.data;
 }
+
+export const saveMarket = async (id) => {
+    const response = await api.post(`/markets/${id}/save`);
+    return response.data;
+};
+
+export const unsaveMarket = async (id) => {
+    const response = await api.delete(`/markets/${id}/save`);
+    return response.data;
+};

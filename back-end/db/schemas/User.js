@@ -51,7 +51,13 @@ const userSchema = new mongoose.Schema(
                 type: Boolean,
                 default: false,
             },
+        },
+        savedMarkets: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Market"
         }
+        ]
     },{
         timestamps: true
     }

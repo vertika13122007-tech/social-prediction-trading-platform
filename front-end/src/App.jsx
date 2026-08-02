@@ -20,6 +20,7 @@ import Wallet from "./pages/Wallet";
 import Settings from "./pages/Settings";
 import OTPVerify from "./pages/OTPVerify";
 import Profile from "./pages/Profile";
+import Portfolio from "./pages/Portfolio";
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -91,6 +92,13 @@ function AnimatedRoutes() {
 
           } 
           />
+        <Route path="/portfolio" 
+          element={
+            <ProtectedRoute>
+              <Portfolio />
+            </ProtectedRoute>
+          } 
+        />
       </Routes>
     </AnimatePresence>
   );

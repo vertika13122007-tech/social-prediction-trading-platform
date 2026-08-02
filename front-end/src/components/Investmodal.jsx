@@ -6,24 +6,9 @@ import {
   BarChart3, Activity, Flame, Star, ArrowRight, Wallet
 } from "lucide-react";
 import { buyShares } from "../api/positionApi";
-
-const RECENT_ACTIVITY = [
-  { user: "Rahul",  amount: "₹1,200", side: "YES", time: "2m ago"  },
-  { user: "Sneha",  amount: "₹500",   side: "NO",  time: "4m ago"  },
-  { user: "Aryan",  amount: "₹2,000", side: "YES", time: "7m ago"  },
-  { user: "Priya",  amount: "₹800",   side: "YES", time: "11m ago" },
-  { user: "Karan",  amount: "₹3,000", side: "NO",  time: "15m ago" },
-  { user: "Ananya", amount: "₹1,500", side: "YES", time: "18m ago" },
-];
+import { getRecentActivity } from "../api/marketApi";
 
 const QUICK_AMOUNTS = [100, 500, 1000, 2000, 5000, 10000];
-
-const INSIGHTS = [
-  { icon: <Flame size={14} className="text-orange-500" />, label: "Market Sentiment", value: "Bullish 🐂", color: "text-emerald-600" },
-  { icon: <Zap size={14} className="text-yellow-500" />,   label: "AI Confidence",   value: "74% YES",   color: "text-blue-600"    },
-  { icon: <BarChart3 size={14} className="text-blue-500" />,label: "Trending",        value: "#3 Today",  color: "text-purple-600"  },
-  { icon: <Star size={14} className="text-amber-500" />,   label: "News Impact",     value: "High",      color: "text-orange-600"  },
-];
 
 function AnimatedNumber({ value }) {
   return <span>{value}</span>;
@@ -50,17 +35,37 @@ export default function InvestModal({ trade, onClose }) {
   const fee       = +(amount * 0.02).toFixed(0);
   const payable   = amount + fee;
 
-  const riskMap = [
-    { label: "Very Low", color: "bg-emerald-500" },
-    { label: "Low",      color: "bg-teal-500"    },
-    { label: "Medium",   color: "bg-yellow-500"  },
-    { label: "High",     color: "bg-orange-500"  },
-    { label: "Very High",color: "bg-red-500"     },
-  ];
-  const riskIdx   = parseInt(trade?.potentialROI) > 130 ? 3 : parseInt(trade?.potentialROI) > 100 ? 2 : 1;
-  const riskLevel = riskMap[riskIdx];
+  const [timeLeft, setTimeLeft] = useState({
+    days: 0,
+    hours: 0,
+    minutes: 0,
+  });
 
-  // Parse timeLeft
+  useEffect(() => {
+    if (!trade?.endsAt) return;
+
+    const update = () => {
+      const diff = new Date(trade.endsAt) - new Date();
+
+      if (diff <= 0) {
+        setTimeLeft({ days: 0, hours: 0, minutes: 0 });
+        return;
+      }
+
+      setTimeLeft({
+        days: Math.floor(diff / (1000 * 60 * 60 * 24)),
+        hours: Math.floor((diff / (1000 * 60 * 60)) % 24),
+        minutes: Math.floor((diff / (1000 * 60)) % 60),
+      });
+    };
+
+    update();
+
+    const timer = setInterval(update, 60000);
+
+    return () => clearInterval(timer);
+  }, [trade.endsAt]);
+  
   const timeParts = trade?.timeLeft?.match(/(\d+)d\s*(\d+)h/) || [];
   const days = timeParts[1] || "0"; const hours = timeParts[2] || "0";
 
@@ -69,7 +74,7 @@ export default function InvestModal({ trade, onClose }) {
     return () => clearTimeout(t);
   }, []);
 
-  // Close on Escape
+  
   useEffect(() => {
     const handler = (e) => { if (e.key === "Escape") onClose(); };
     document.addEventListener("keydown", handler);
@@ -138,6 +143,67 @@ export default function InvestModal({ trade, onClose }) {
     amount,
     canInvest,
   });
+
+  const totalInvestment =
+    (trade.totalYesInvestment || 0) +
+    (trade.totalNoInvestment || 0);
+
+  const yesPercent =
+    totalInvestment === 0
+      ? 50
+      : Math.round((trade.totalYesInvestment / totalInvestment) * 100);
+
+  const noPercent = 100 - yesPercent;
+
+  const imbalance = Math.abs(yesPercent - noPercent);
+
+  let riskIdx = 0;
+
+  if (trade.poolValue < 1000) {
+      riskIdx = 4;
+  } else if (trade.poolValue < 5000) {
+      riskIdx = 3;
+  } else if (trade.poolValue < 10000) {
+      riskIdx = 2;
+  } else if (imbalance > 60) {
+      riskIdx = 2;
+  } else if (imbalance > 40) {
+      riskIdx = 1;
+  } else {
+      riskIdx = 0;
+  }
+
+  const riskMap = [
+      { label: "Very Low", color: "bg-emerald-500" },
+      { label: "Low", color: "bg-teal-500" },
+      { label: "Medium", color: "bg-yellow-500" },
+      { label: "High", color: "bg-orange-500" },
+      { label: "Very High", color: "bg-red-500" },
+  ];
+
+  const riskLevel = riskMap[riskIdx];
+
+  const [recentActivity, setRecentActivity] = useState([]);
+
+  useEffect(() => {
+
+    const loadActivity = async () => {
+        try {
+            const data = await getRecentActivity(trade.id);
+            setRecentActivity(data);
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    loadActivity();
+
+  }, [trade.id]);
+
+  const multiplier =
+    prediction === "YES"
+        ? trade.noPrice
+        : trade.yesPrice;
 
   return (
     <div
@@ -267,12 +333,12 @@ export default function InvestModal({ trade, onClose }) {
                   </div>
                   <div className="flex items-center gap-2">
                     {[
-                      { val: days,  unit: "Days"  },
-                      { val: hours, unit: "Hours" },
-                      { val: "18",  unit: "Mins"  },
+                      { val: timeLeft.days,  unit: "Days"  },
+                      { val: timeLeft.hours, unit: "Hours" },
+                      { val: timeLeft.minutes,  unit: "Mins"  },
                     ].map((t, i) => (
                       <div key={i} className="flex flex-col items-center">
-                        <span className="text-sm font-bold text-blue-600 dark:text-blue-400 leading-none">{t.val}</span>
+                        <span className="text-sm font-bold text-blue-600 dark:text-blue-400 leading-none">{String(t.val).padStart(2,"0")}</span>
                         <span className="text-[9px] text-gray-400">{t.unit}</span>
                       </div>
                     ))}
@@ -309,7 +375,7 @@ export default function InvestModal({ trade, onClose }) {
                             : "text-gray-700 dark:text-gray-300"
                         }`}>{side}</span>
                         <span className="text-[11px] text-gray-400 mt-0.5">
-                          {side === "YES" ? `${yesStats.rate} Win Rate` : `${noStats.rate} Win Rate`}
+                          {side === "YES" ? `${yesPercent}% of money` : `${noPercent}% of money`}
                         </span>
                         {prediction === side && (
                           <motion.div
@@ -333,11 +399,22 @@ export default function InvestModal({ trade, onClose }) {
                     className="grid grid-cols-2 gap-3"
                   >
                     {[
-                      { label: "Winning Rate",     value: selectedStats.rate     },
-                      { label: "Investors",        value: selectedStats.investors },
-                      { label: "Users",            value: selectedStats.users     },
-                      { label: "Money Pooled",     value: selectedStats.money     },
-                      { label: "Potential Return", value: selectedStats.returns   },
+                      { label: "Winning Rate",     value: `${prediction === "YES" ? yesPercent : noPercent }%`},
+                      { label: "Investors",        value: trade.investors },
+                      {label: "Liquidity",
+                        value:
+                          trade.poolValue >= 100000
+                            ? `₹${(trade.poolValue / 100000).toFixed(1)}L`
+                            : trade.poolValue >= 1000
+                            ? `₹${(trade.poolValue / 1000).toFixed(1)}K`
+                            : `₹${trade.poolValue}`,
+                      },
+                      { label: "Money Pooled",     value: `₹${(
+                                                                prediction === "YES"
+                                                                    ? trade.totalYesInvestment
+                                                                    : trade.totalNoInvestment
+                                                            ).toLocaleString()}` },
+                      { label: "Potential Return", value: `${multiplier.toFixed(2)}x`  },
                       { label: "Odds",             value: `${odds}x`             },
                     ].map((s, i) => (
                       <div key={i} className="bg-gray-50 dark:bg-gray-800/60 rounded-xl px-3 py-2.5 border border-gray-100 dark:border-gray-700/50">
@@ -355,15 +432,23 @@ export default function InvestModal({ trade, onClose }) {
                   </div>
                   <div className="space-y-2">
                     {[
-                      { label: "YES", pct: yesStats.pct, color: "from-emerald-500 to-teal-500", bg: "bg-emerald-100 dark:bg-emerald-900/20" },
-                      { label: "NO",  pct: noStats.pct,  color: "from-red-500 to-rose-500",     bg: "bg-red-100 dark:bg-red-900/20"         },
+                      {
+                        label: "YES",
+                        pct: yesPercent,
+                        color: "from-emerald-500 to-teal-500",
+                      },
+                      {
+                        label: "NO",
+                        pct: noPercent,
+                        color: "from-red-500 to-rose-500",
+                      },
                     ].map((bar) => (
                       <div key={bar.label} className="flex items-center gap-3">
                         <span className={`text-xs font-bold w-7 ${bar.label === "YES" ? "text-emerald-600 dark:text-emerald-400" : "text-red-500 dark:text-red-400"}`}>{bar.label}</span>
                         <div className="flex-1 h-2.5 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
                           <motion.div
                             initial={{ width: 0 }}
-                            animate={{ width: `${barWidth * (bar.pct / yesStats.pct)}%` }}
+                            animate={{ width: `${bar.pct}%` }}
                             transition={{ duration: 1, delay: 0.3, ease: "easeOut" }}
                             className={`h-full rounded-full bg-gradient-to-r ${bar.color}`}
                           />
@@ -482,7 +567,7 @@ export default function InvestModal({ trade, onClose }) {
                 <div>
                   <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Recent Activity</p>
                   <div className="space-y-1.5 max-h-28 overflow-y-auto pr-1 scrollbar-hide">
-                    {RECENT_ACTIVITY.map((act, i) => (
+                    {recentActivity.map((act, i) => (
                       <motion.div
                         key={i}
                         initial={{ opacity: 0, x: -8 }}
@@ -493,11 +578,15 @@ export default function InvestModal({ trade, onClose }) {
                         <div className="flex items-center gap-2">
                           <span className={`w-2 h-2 rounded-full shrink-0 ${act.side === "YES" ? "bg-emerald-500" : "bg-red-400"}`} />
                           <span className="text-xs text-gray-600 dark:text-gray-400">
-                            <span className="font-semibold text-gray-800 dark:text-gray-200">{act.user}</span> invested {act.amount} on{" "}
+                            <span className="font-semibold text-gray-800 dark:text-gray-200">{act.user}</span> invested ₹{Number(act.amount).toLocaleString()} on{" "}
                             <span className={`font-bold ${act.side === "YES" ? "text-emerald-600 dark:text-emerald-400" : "text-red-500 dark:text-red-400"}`}>{act.side}</span>
                           </span>
                         </div>
-                        <span className="text-[10px] text-gray-400 shrink-0 ml-2">{act.time}</span>
+                        <span className="text-[10px] text-gray-400 shrink-0 ml-2">{new Date(act.time).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </span>
                       </motion.div>
                     ))}
                   </div>

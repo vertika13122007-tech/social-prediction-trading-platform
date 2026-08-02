@@ -16,6 +16,7 @@ const {
     getOpenMarkets,
     getSettledMarkets,
     getTopMarkets,
+    getRecentActivity
 } = require("../controllers/marketController");
 const adminMiddleware = require("../middleware/adminMiddleware");
 const {
@@ -65,6 +66,12 @@ router.get(
     "/:id",
     authMiddleware,
     getMarketById
+);
+
+router.get(
+    "/:id/activity",
+    authMiddleware,
+    getRecentActivity
 );
 
 router.patch(

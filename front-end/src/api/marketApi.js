@@ -35,3 +35,8 @@ export const unsaveMarket = async (id) => {
     const response = await api.delete(`/markets/${id}/save`);
     return response.data;
 };
+
+export const getRecentActivity = async (marketId) => {
+    const response = await api.get(`/markets/${marketId}/activity`);
+    return response.data;
+};

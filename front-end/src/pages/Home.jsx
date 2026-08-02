@@ -147,6 +147,8 @@ export default function Home({ firstVisit = false, onMount }) {
               poolValue: market.totalVolume || 0,
               yesPrice: market.yesPrice || 0,
               noPrice: market.noPrice || 0,
+              totalYesInvestment: market.totalYesInvestment || 0,
+              totalNoInvestment: market.totalNoInvestment || 0,
               endsAt: market.endsAt,
               investors: market.participationCount || 0,
               saved: market.saved,

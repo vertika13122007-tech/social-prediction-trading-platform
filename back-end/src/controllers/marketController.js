@@ -521,6 +521,36 @@ const getTopMarkets = async (req,resp) => {
     }
 };
 
+const getRecentActivity = async (req, res) => {
+    try {
+
+        const positions = await Position.find({
+            marketId: req.params.id
+        })
+        .populate("userId", "name")
+        .sort({ createdAt: -1 })
+        .limit(8);
+
+        const activity = positions.map(position => ({
+            user: position.userId.name,
+            amount: position.investedAmount,
+            side: position.side,
+            time: position.createdAt
+        }));
+
+        return res.json(activity);
+
+    } catch (err) {
+
+        console.error(err);
+
+        return res.status(500).json({
+            message: "Failed to load activity"
+        });
+
+    }
+};
+
 module.exports = {
     createMarket,
     getAllMarkets,
@@ -532,5 +562,6 @@ module.exports = {
     getRecentMarkets,
     getOpenMarkets,
     getSettledMarkets,
-    getTopMarkets
+    getTopMarkets,
+    getRecentActivity
 };

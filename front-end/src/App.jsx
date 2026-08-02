@@ -48,47 +48,47 @@ function AnimatedRoutes() {
         <Route
           path="/home"
           element={
-            <ProtectedRoute>
+            
               <Home
                 firstVisit={!hasVisitedHome}
                 onMount={() => setHasVisitedHome(true)}
               />
-            </ProtectedRoute>
+           
           }
         />
         <Route path="/leaderboard"
           element={
-              <ProtectedRoute>
+              
                 <Leaderboard />
-              </ProtectedRoute>
+              
           }
         />
         <Route path="/notifications" 
           element={
-            <ProtectedRoute>
+            
               <Notifications />
-            </ProtectedRoute>
+            
           } 
         />
         <Route path="/wallet" 
           element={
-            <ProtectedRoute>
+           
               <Wallet />
-            </ProtectedRoute>
+            
           } 
         />
         <Route path="/settings" 
           element={
-            <ProtectedRoute>
+            
               <Settings />
-            </ProtectedRoute>
+            
           } 
         />
         <Route path="/profile" 
           element={
-            <ProtectedRoute>
+          
               <Profile />
-            </ProtectedRoute>
+
           } 
           />
       </Routes>

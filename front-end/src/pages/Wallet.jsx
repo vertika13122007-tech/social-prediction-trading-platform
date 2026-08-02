@@ -10,21 +10,7 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer
 } from "recharts";
-import { getWallet, getTransactions, deposit,withdraw } from "../api/walletApi";
-
-const WEEK_DATA = [
-  { day: "Mon", balance: 10000 },
-  { day: "Tue", balance: 10800 },
-  { day: "Wed", balance: 10500 },
-  { day: "Thu", balance: 11200 },
-  { day: "Fri", balance: 10900 },
-  { day: "Sat", balance: 12100 },
-  { day: "Sun", balance: 12450 },
-];
-
-const totalInvested = 0;
-const totalEarned = 0;
-const winRate = 0;
+import { getWallet, getTransactions, deposit,withdraw, getWalletAnalytics } from "../api/walletApi";
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
@@ -131,6 +117,10 @@ export default function Wallet() {
   const [transactions, setTransactions] = useState([]);
   const [balance, setBalance] = useState(0);
   const [filter, setFilter] = useState("All");
+  const [chartData, setChartData] = useState([]);
+  const [totalInvested, setTotalInvested] = useState(0);
+  const [totalEarned, setTotalEarned] = useState(0);
+  const [winRate, setWinRate] = useState(0);
 
   const filteredTx = (transactions || []).filter((t) => {
     if (filter === "Credits") return t.type === "credit";
@@ -142,10 +132,18 @@ export default function Wallet() {
     const fetchWallet = async () => {
       try{
 
-        const wallet = await getWallet();
         const tx = await getTransactions();
+        const analytics = await getWalletAnalytics();
 
-        setBalance(wallet.walletBalance);
+        setBalance(analytics.walletBalance);
+        setTotalInvested(analytics.totalInvested);
+        setTotalEarned(analytics.totalEarned);
+        setWinRate(analytics.winRate);
+
+        setChartData(
+          analytics.weeklyBalance || []
+        );
+
         setTransactions(tx.map(formatTransaction));
 
       }catch(error){
@@ -400,7 +398,7 @@ export default function Wallet() {
               </span>
             </div>
             <ResponsiveContainer width="100%" height={200}>
-              <AreaChart data={WEEK_DATA} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+              <AreaChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="balanceGrad" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%"  stopColor="#3b82f6" stopOpacity={0.3} />

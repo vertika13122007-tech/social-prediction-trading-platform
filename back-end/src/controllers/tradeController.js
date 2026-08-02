@@ -81,6 +81,7 @@ const buyShares = async (req , resp ) => {
                 side,
                 shares,
                 averageBuyPrice: sharePrice,
+                investedAmount: totalCost, 
                 createdAt: new Date()
             });
 
@@ -97,11 +98,12 @@ const buyShares = async (req , resp ) => {
             const totalShares =
                 position.shares + shares;
 
-            position.averageBuyPrice =
-                (totalOldCost + totalNewCost) /
-                totalShares;
+            position.averageBuyPrice =Number(((totalOldCost + totalNewCost) /
+                totalShares).toFixed(2));
 
             position.shares = totalShares;
+
+            position.investedAmount += totalCost;
 
             await position.save();
         }
@@ -212,6 +214,8 @@ const getMyPosition = async ( req, resp ) => {
 const sellShares = async (req , resp) => {
 
     try{
+        const io = getIO();
+
         const user = await User.findById(req.user.id).select("name");
 
         const {
@@ -284,7 +288,13 @@ const sellShares = async (req , resp) => {
             `Sold ${shares} ${side} shares`
         );
 
+        const oldShares = position.shares;
+
         position.shares -= shares;
+
+        position.investedAmount =
+            position.investedAmount *
+            (position.shares / oldShares);
 
         if (position.shares === 0) {
 
@@ -298,7 +308,7 @@ const sellShares = async (req , resp) => {
             });
 
             if (!remainingPositions) {
-                market.participantsCount -= 1;
+                market.participationCount -= 1;
                 await market.save();
             }
 

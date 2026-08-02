@@ -17,6 +17,8 @@ const aiRoute = require("./src/routes/aiRoute");
 const userRoute = require("./src/routes/userRouter");
 const notificationRoute = require("./src/routes/notificationRoute");
 const liveUpdateRoute = require("./src/routes/liveUpdateRoute");
+const walletStatsRoute = require("./src/routes/walletStatsRoute");
+const walletAnalysisRoute = require("./src/controllers/walletAnalyticsController");
 
 const app = express();
 
@@ -45,6 +47,8 @@ app.use("/api/ai",aiRoute);
 app.use("/api/user",userRoute)
 app.use("/api/notifications",notificationRoute);
 app.use("/api/live-updates", liveUpdateRoute);
+app.use("/api/wallet/stats", walletStatsRoute);
+app.use("/api/wallet/analytics", walletStatsRoute);
 
 app.get("/",(req,resp) => {
     resp.send("Backend is working...");

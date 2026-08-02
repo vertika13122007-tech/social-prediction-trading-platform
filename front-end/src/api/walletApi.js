@@ -21,3 +21,16 @@ export const deposit = (amount) => {
 export const withdraw = (amount) => {
     api.post("/wallet/withdraw", {amount});
 };
+
+export const getWalletStats = async () => {
+    const res = await api.get("/wallet/stats");
+    return res.data;
+};
+
+export const getWalletAnalytics = async () => {
+
+    const res = await api.get("/wallet/analytics");
+
+    return res.data;
+
+};

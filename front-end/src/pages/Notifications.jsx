@@ -15,6 +15,7 @@ import {
 import { notificationConfig } from "../utilis/notificationConfig";
 import { useAuth } from "../context/AuthContext";
 import { useNotification } from "../context/NotificationContext";
+import { useTheme } from "../context/ThemeContext";
 import { socket } from "../socket/socket";
 
 const FILTERS = ["All", "Unread", "Trending", "Payout", "Urgent", "System"];
@@ -34,24 +35,14 @@ export function formatNotificationTime(date) {
 }
 
 export default function Notifications() {
-  const [darkMode, setDarkMode] = useState(false);
+  const { darkMode, setDarkMode } = useTheme();
   const [liveUpdatesOpen, setLiveUpdatesOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [activeFilter, setActiveFilter] = useState("All");
   const { token } = useAuth();
   const { setCount } = useNotification();
 
-  useEffect(() => {
-    document.documentElement.classList.remove("dark");
-  }, []);
 
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, [darkMode]);
 
   const [selectedNotif, setSelectedNotif] = useState(null);
   const closeButtonRef = useRef(null);

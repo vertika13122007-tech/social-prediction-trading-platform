@@ -12,6 +12,7 @@ import {
 import { getPortfolio, getTradingHistory } from "../api/portfolioApi";
 import { getOpenMarkets } from "../api/marketApi";
 import { buyShares, sellShares } from "../api/positionApi";
+import { useTheme } from "../context/ThemeContext";
 
 // ─── DATA CONFIGS ────────────────────────────────────────────────────────────
 const HIST_FILTERS = ["All", "Bought", "Sold", "Won", "Lost", "Rewards"];
@@ -34,6 +35,8 @@ const categoryColors = {
   Memes:    "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-700",
 };
 
+const fmtMoney = (val) => Number(val || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
 // ─── SELL MODAL ───────────────────────────────────────────────────────────────
 function SellModal({ position, onClose, onSuccess }) {
   const [qty, setQty] = useState(position.qty);
@@ -41,7 +44,7 @@ function SellModal({ position, onClose, onSuccess }) {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const pct = Math.round((qty / position.qty) * 100);
-  const estReturn = +(qty * position.currentPrice * 100).toFixed(0);
+  const estReturn = +(qty * position.currentPrice * 100).toFixed(2);
   const pnl = estReturn - Math.round(qty * position.buyPrice * 100);
 
   useEffect(() => {
@@ -81,7 +84,7 @@ function SellModal({ position, onClose, onSuccess }) {
               </motion.div>
               <div>
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white">Sold Successfully!</h3>
-                <p className="text-gray-400 text-sm mt-1">₹{estReturn.toLocaleString()} will be credited to your wallet.</p>
+                <p className="text-gray-400 text-sm mt-1">₹{fmtMoney(estReturn)} will be credited to your wallet.</p>
               </div>
               <button onClick={onClose} className="w-full py-3 rounded-2xl bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500 text-white font-bold text-sm hover:scale-[1.02] active:scale-95 transition-all shadow-lg">Done</button>
             </motion.div>
@@ -122,8 +125,8 @@ function SellModal({ position, onClose, onSuccess }) {
               <div className="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/10 rounded-2xl border border-blue-100 dark:border-blue-800/30 p-4 space-y-2">
                 {[
                   { l: "Selling",       v: `${qty} / ${position.qty} shares` },
-                  { l: "Est. Return",   v: `₹${estReturn.toLocaleString()}`, c: true },
-                  { l: "Profit / Loss", v: `${pnl >= 0 ? "+" : ""}₹${pnl.toLocaleString()}`, c: true, green: pnl >= 0 },
+                  { l: "Est. Return",   v: `₹${fmtMoney(estReturn)}`, c: true },
+                  { l: "Profit / Loss", v: `${pnl >= 0 ? "+" : ""}₹${fmtMoney(pnl)}`, c: true, green: pnl >= 0 },
                 ].map((row, i) => (
                   <div key={i} className="flex justify-between">
                     <span className="text-xs text-gray-500 dark:text-gray-400">{row.l}</span>
@@ -152,7 +155,7 @@ function BuyModal({ item, onClose, onSuccess }) {
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
-  const total = +(qty * item.sellPrice * 100).toFixed(0);
+  const total = +(qty * item.sellPrice * 100).toFixed(2);
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -188,7 +191,7 @@ function BuyModal({ item, onClose, onSuccess }) {
               </div>
               <div>
                 <h3 className="text-xl font-bold text-gray-900 dark:text-white">Position Bought!</h3>
-                <p className="text-gray-400 text-sm mt-1">₹{total.toLocaleString()} deducted from wallet.</p>
+                <p className="text-gray-400 text-sm mt-1">₹{fmtMoney(total)} deducted from wallet.</p>
               </div>
               <button onClick={onClose} className="w-full py-3 rounded-2xl bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500 text-white font-bold text-sm hover:scale-[1.02] active:scale-95 transition-all shadow-lg">Done</button>
             </motion.div>
@@ -210,7 +213,7 @@ function BuyModal({ item, onClose, onSuccess }) {
                 {[
                   { l: "Seller",     v: item.seller },
                   { l: "Prediction", v: item.prediction, green: item.prediction === "YES" },
-                  { l: "Price/Share",v: `₹${(item.sellPrice * 100).toFixed(0)}` },
+                  { l: "Price/Share",v: `₹${fmtMoney(item.sellPrice * 100)}` },
                   { l: "Available",  v: `${item.qty} shares` },
                   { l: "ROI",        v: item.roi, green: true },
                 ].map((r, i) => (
@@ -230,14 +233,14 @@ function BuyModal({ item, onClose, onSuccess }) {
               </div>
               <div className="flex justify-between px-4 py-3 rounded-2xl bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/10 border border-blue-100 dark:border-blue-800/30">
                 <span className="text-sm text-gray-500 dark:text-gray-400">Total Payable</span>
-                <span className="font-bold text-blue-700 dark:text-blue-400">₹{total.toLocaleString()}</span>
+                <span className="font-bold text-blue-700 dark:text-blue-400">₹{fmtMoney(total)}</span>
               </div>
               <div className="flex gap-3">
                 <button onClick={onClose} className="flex-1 py-3 rounded-2xl border-2 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 font-semibold text-sm hover:border-gray-300 active:scale-95 transition-all">Cancel</button>
                 <motion.button onClick={handleBuy} disabled={loading}
                   whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
                   className="flex-1 py-3 rounded-2xl bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500 text-white font-bold text-sm shadow-lg hover:shadow-xl disabled:opacity-50 transition-all flex items-center justify-center gap-2">
-                  {loading ? <><motion.div animate={{ rotate: 360 }} transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }} className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full" />Buying…</> : <>Buy Position</>}
+                  {loading ? <><motion.div animate={{ rotate: 360 }} transition={{ duration: 0.8, repeat: Infinity, ease: "linear" }} className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full" />Buying…</> : <>Confirm Buy</>}
                 </motion.button>
               </div>
             </motion.div>
@@ -250,7 +253,7 @@ function BuyModal({ item, onClose, onSuccess }) {
 
 // ─── MAIN PAGE ────────────────────────────────────────────────────────────────
 export default function Portfolio() {
-  const [darkMode,        setDarkMode]        = useState(false);
+  const { darkMode, setDarkMode } = useTheme();
   const [liveUpdatesOpen, setLiveUpdatesOpen] = useState(false);
   const [activeTab,       setActiveTab]       = useState("Open Positions");
   const [sellPosition,    setSellPosition]    = useState(null);
@@ -267,12 +270,6 @@ export default function Portfolio() {
   const [marketplace, setMarketplace] = useState([]);
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => { document.documentElement.classList.remove("dark"); }, []);
-  useEffect(() => {
-    if (darkMode) document.documentElement.classList.add("dark");
-    else          document.documentElement.classList.remove("dark");
-  }, [darkMode]);
 
   const loadData = async () => {
     try {
@@ -364,9 +361,9 @@ export default function Portfolio() {
           {/* ── Summary cards ── */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[
-              { label: "Total Invested", value: `₹${totalInvest.toLocaleString()}`, icon: <DollarSign size={18} />, bg: "bg-blue-100 dark:bg-blue-900/30", ic: "text-blue-600 dark:text-blue-400" },
-              { label: "Current Value",  value: `₹${totalReturn.toLocaleString()}`, icon: <Wallet size={18} />,     bg: "bg-teal-100 dark:bg-teal-900/30",  ic: "text-teal-600 dark:text-teal-400"  },
-              { label: "Total P&L",      value: `${totalPnl >= 0 ? "+" : ""}₹${totalPnl.toLocaleString()}`, icon: <TrendingUp size={18} />, bg: totalPnl >= 0 ? "bg-emerald-100 dark:bg-emerald-900/30" : "bg-red-100 dark:bg-red-900/30", ic: totalPnl >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-500" },
+              { label: "Total Invested", value: `₹${fmtMoney(totalInvest)}`, icon: <DollarSign size={18} />, bg: "bg-blue-100 dark:bg-blue-900/30", ic: "text-blue-600 dark:text-blue-400" },
+              { label: "Current Value",  value: `₹${fmtMoney(totalReturn)}`, icon: <Wallet size={18} />,     bg: "bg-teal-100 dark:bg-teal-900/30",  ic: "text-teal-600 dark:text-teal-400"  },
+              { label: "Total P&L",      value: `${totalPnl >= 0 ? "+" : ""}₹${fmtMoney(totalPnl)}`, icon: <TrendingUp size={18} />, bg: totalPnl >= 0 ? "bg-emerald-100 dark:bg-emerald-900/30" : "bg-red-100 dark:bg-red-900/30", ic: totalPnl >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-500" },
               { label: "Positions",      value: `${openPositionsList.length} Active`,  icon: <Activity size={18} />,   bg: "bg-purple-100 dark:bg-purple-900/30", ic: "text-purple-600 dark:text-purple-400" },
             ].map((s, i) => (
               <motion.div key={i} variants={cardVariants} initial="hidden" animate="show"
@@ -426,7 +423,7 @@ export default function Portfolio() {
                             </div>
                             {/* P&L badge */}
                             <div className={`shrink-0 px-3 py-1.5 rounded-xl text-center ${isProfit ? "bg-emerald-50 dark:bg-emerald-900/20" : "bg-red-50 dark:bg-red-900/20"}`}>
-                              <p className={`text-xs font-bold ${isProfit ? "text-emerald-600 dark:text-emerald-400" : "text-red-500 dark:text-red-400"}`}>{pos.pnl >= 0 ? "+" : ""}₹{Math.abs(pos.pnl).toLocaleString()}</p>
+                              <p className={`text-xs font-bold ${isProfit ? "text-emerald-600 dark:text-emerald-400" : "text-red-500 dark:text-red-400"}`}>{pos.pnl >= 0 ? "+" : ""}₹{fmtMoney(Math.abs(pos.pnl))}</p>
                               <p className={`text-[10px] font-semibold ${isProfit ? "text-emerald-500" : "text-red-400"}`}>{pos.roi}</p>
                             </div>
                           </div>
@@ -434,10 +431,10 @@ export default function Portfolio() {
                           {/* Stats grid */}
                           <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 mb-4">
                             {[
-                              { l: "Buy Price",     v: `₹${(pos.buyPrice * 100).toFixed(0)}` },
-                              { l: "Curr. Price",   v: `₹${(pos.currentPrice * 100).toFixed(0)}` },
+                              { l: "Buy Price",     v: `₹${fmtMoney(pos.buyPrice * 100)}` },
+                              { l: "Curr. Price",   v: `₹${fmtMoney(pos.currentPrice * 100)}` },
                               { l: "Quantity",      v: pos.qty },
-                              { l: "Invested",      v: `₹${pos.totalInvest.toLocaleString()}` },
+                              { l: "Invested",      v: `₹${fmtMoney(pos.totalInvest)}` },
                               { l: "Win Prob",      v: `${pos.winProb}%` },
                               { l: "Investors",     v: pos.investors },
                             ].map((s, j) => (
@@ -512,7 +509,7 @@ export default function Portfolio() {
                           <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-3 line-clamp-2">{item.market}</p>
                           <div className="grid grid-cols-3 gap-2 mb-3">
                             {[
-                              { l: "Price",    v: `₹${(item.sellPrice * 100).toFixed(0)}` },
+                              { l: "Price",    v: `₹${fmtMoney(item.sellPrice * 100)}` },
                               { l: "ROI",      v: item.roi },
                               { l: "Available",v: `${item.qty} shares` },
                             ].map((s, j) => (
@@ -591,11 +588,11 @@ export default function Portfolio() {
                                 <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-0.5">{h.date}</p>
                               </div>
                               <div className="text-right shrink-0">
-                                {h.invested > 0 && <p className="text-xs text-gray-500 dark:text-gray-400">₹{h.invested.toLocaleString()}</p>}
-                                {h.returned > 0 && <p className="text-xs font-semibold text-gray-700 dark:text-gray-300">→ ₹{h.returned.toLocaleString()}</p>}
+                                {h.invested > 0 && <p className="text-xs text-gray-500 dark:text-gray-400">₹{fmtMoney(h.invested)}</p>}
+                                {h.returned > 0 && <p className="text-xs font-semibold text-gray-700 dark:text-gray-300">→ ₹{fmtMoney(h.returned)}</p>}
                                 {hasPnl && (
                                   <p className={`text-sm font-bold ${h.pnl > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-500 dark:text-red-400"}`}>
-                                    {h.pnl > 0 ? "+" : ""}₹{h.pnl.toLocaleString()}
+                                    {h.pnl > 0 ? "+" : ""}₹{fmtMoney(h.pnl)}
                                   </p>
                                 )}
                                 <span className="text-[10px] text-gray-400 flex items-center justify-end gap-1 mt-0.5">

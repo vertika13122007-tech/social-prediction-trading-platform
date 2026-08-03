@@ -13,6 +13,8 @@ import { sendMessage } from "../api/chatApi";
 import { motion } from "framer-motion";
 import { socket } from "../socket/socket";
 
+import { useTheme } from "../context/ThemeContext";
+
 const SORT_OPTIONS = [
   { label: "Newest First",    icon: "🆕" },
   { label: "Oldest First",    icon: "📅" },
@@ -29,20 +31,7 @@ const HELP_ITEMS = [
 ];
 
 export default function Home({ firstVisit = false, onMount }) {
-  const [darkMode, setDarkMode] = useState(false);
-
-  // Always start light on mount
-  useEffect(() => {
-    document.documentElement.classList.remove("dark");
-  }, []);
-
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, [darkMode]);
+  const { darkMode, setDarkMode } = useTheme();
 
   // Set live updates open only on first visit (from login), mark visited
   useEffect(() => {
@@ -493,7 +482,7 @@ export default function Home({ firstVisit = false, onMount }) {
                 >
 
                     <div
-                        className={`max-w-[85%] text-xs px-3 py-2 rounded-xl leading-relaxed ${
+                        className={`max-w-[85%] text-xs px-3.5 py-2.5 rounded-xl leading-relaxed whitespace-pre-wrap ${
                             msg.sender === "user"
                                 ? "bg-blue-600 text-white rounded-br-sm"
                                 : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-bl-sm"

@@ -11,6 +11,9 @@ import {
   Tooltip, ResponsiveContainer
 } from "recharts";
 import { getWallet, getTransactions, deposit,withdraw, getWalletAnalytics } from "../api/walletApi";
+import { useTheme } from "../context/ThemeContext";
+
+const fmtMoney = (val) => Number(val || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
@@ -18,7 +21,7 @@ const CustomTooltip = ({ active, payload, label }) => {
       <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-700 rounded-xl px-4 py-2.5 shadow-xl">
         <p className="text-xs text-gray-400 mb-0.5">{label}</p>
         <p className="text-sm font-bold text-blue-600">
-          🪙 {payload[0].value.toLocaleString()}
+          🪙 {fmtMoney(payload[0].value)}
         </p>
       </div>
     );
@@ -37,7 +40,7 @@ const formatTransaction = (tx) => {
         iconColor: "text-emerald-600 dark:text-emerald-400",
         title: "Credit",
         desc: tx.description,
-        amount: `+${tx.amount.toLocaleString()}`,
+        amount: `+${fmtMoney(tx.amount)}`,
         amountColor: "text-emerald-600 dark:text-emerald-400",
         date: new Date(tx.createdAt).toLocaleString(),
         status: "completed",
@@ -52,7 +55,7 @@ const formatTransaction = (tx) => {
         iconColor: "text-red-600 dark:text-red-400",
         title: "Debit",
         desc: tx.description,
-        amount: `-${tx.amount.toLocaleString()}`,
+        amount: `-${fmtMoney(tx.amount)}`,
         amountColor: "text-red-500 dark:text-red-400",
         date: new Date(tx.createdAt).toLocaleString(),
         status: "completed",
@@ -67,7 +70,7 @@ const formatTransaction = (tx) => {
         iconColor: "text-orange-600 dark:text-orange-400",
         title: "Market Buy",
         desc: tx.description,
-        amount: `-${tx.amount.toLocaleString()}`,
+        amount: `-${fmtMoney(tx.amount)}`,
         amountColor: "text-red-500 dark:text-red-400",
         date: new Date(tx.createdAt).toLocaleString(),
         status: "completed",
@@ -82,7 +85,7 @@ const formatTransaction = (tx) => {
         iconColor: "text-blue-600 dark:text-blue-400",
         title: "Market Sell",
         desc: tx.description,
-        amount: `+${tx.amount.toLocaleString()}`,
+        amount: `+${fmtMoney(tx.amount)}`,
         amountColor: "text-emerald-600 dark:text-emerald-400",
         date: new Date(tx.createdAt).toLocaleString(),
         status: "completed",
@@ -97,7 +100,7 @@ const formatTransaction = (tx) => {
         iconColor: "text-purple-600 dark:text-purple-400",
         title: "Reward",
         desc: tx.description,
-        amount: `+${tx.amount.toLocaleString()}`,
+        amount: `+${fmtMoney(tx.amount)}`,
         amountColor: "text-emerald-600 dark:text-emerald-400",
         date: new Date(tx.createdAt).toLocaleString(),
         status: "completed",
@@ -109,7 +112,7 @@ const formatTransaction = (tx) => {
 };
 
 export default function Wallet() {
-  const [darkMode, setDarkMode] = useState(false);
+  const { darkMode, setDarkMode } = useTheme();
   const [liveUpdatesOpen, setLiveUpdatesOpen] = useState(false);
   const [showDeposit, setShowDeposit] = useState(false);
   const [showWithdraw, setShowWithdraw] = useState(false);
@@ -122,11 +125,13 @@ export default function Wallet() {
   const [totalEarned, setTotalEarned] = useState(0);
   const [winRate, setWinRate] = useState(0);
 
-  const filteredTx = (transactions || []).filter((t) => {
-    if (filter === "Credits") return t.type === "credit";
-    if (filter === "Debits") return t.type === "debit";
-    return true;
-  });
+  const filteredTx = (transactions || [])
+    .filter((t) => {
+      if (filter === "Credits") return t.type === "credit";
+      if (filter === "Debits") return t.type === "debit";
+      return true;
+    })
+    .slice(0, 10);
 
   useEffect(() => {
     const fetchWallet = async () => {
@@ -244,7 +249,7 @@ export default function Wallet() {
               <p className="text-blue-200 text-sm font-medium mb-1">Total Balance</p>
               <div className="flex items-end gap-2 mb-6">
                 <span className="text-4xl sm:text-5xl font-bold text-white">
-                  🪙 {balance.toLocaleString()}
+                  🪙 {fmtMoney(balance)}
                 </span>
                 <span className="text-blue-200 text-sm mb-1.5">coins</span>
               </div>
@@ -321,7 +326,7 @@ export default function Wallet() {
                   type="number"
                   value={inputAmount}
                   onChange={(e) => setInputAmount(e.target.value)}
-                  placeholder={`Max: ${balance.toLocaleString()}`}
+                  placeholder={`Max: ${fmtMoney(balance)}`}
                   className="flex-1 px-4 py-2.5 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-red-400 transition-all duration-200"
                 />
                 <button
@@ -352,7 +357,7 @@ export default function Wallet() {
               </div>
               <p className="text-[11px] text-gray-400 dark:text-gray-500 mb-0.5">Total Invested</p>
               <p className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">
-                🪙 {totalInvested.toLocaleString()}
+                🪙 {fmtMoney(totalInvested)}
               </p>
             </div>
 
@@ -363,7 +368,7 @@ export default function Wallet() {
               </div>
               <p className="text-[11px] text-gray-400 dark:text-gray-500 mb-0.5">Total Earned</p>
               <p className="text-base sm:text-lg font-bold text-emerald-600 dark:text-emerald-400">
-                🪙 {totalEarned.toLocaleString()}
+                🪙 {fmtMoney(totalEarned)}
               </p>
             </div>
 

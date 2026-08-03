@@ -131,11 +131,7 @@ export default function LiveUpdates({ onClose }) {
       </div>
 
       {/* Footer */}
-      <div className="px-4 py-3 border-t border-gray-100 dark:border-gray-800 shrink-0">
-        <button className="w-full text-xs text-blue-600 dark:text-blue-400 font-semibold hover:underline text-center">
-          View all notifications
-        </button>
-      </div>
+      <div className="flex items-center justify-between px-4 py-3.5 border-t border-gray-100 dark:border-gray-800 shrink-0" />
     </div>
   );
 }

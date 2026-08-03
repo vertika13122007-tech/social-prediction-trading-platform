@@ -10,6 +10,7 @@ import {
 import { useAuth } from "../context/AuthContext";
 import { updateUsername, changePassword, getNotificationSettings } from "../api/userApi";
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "../context/ThemeContext";
 
 // Reusable toggle switch
 function Toggle({ checked, onChange }) {
@@ -48,18 +49,8 @@ function SettingsSection({ icon, iconBg, title, desc, children }) {
 }
 
 export default function Settings() {
-  
-  const [darkMode, setDarkMode] = useState(false);
+  const { darkMode, setDarkMode } = useTheme();
   const [liveUpdatesOpen, setLiveUpdatesOpen] = useState(false);
-
-  useEffect(() => {
-    document.documentElement.classList.remove("dark");
-  }, []);
-
-  useEffect(() => {
-    if (darkMode) document.documentElement.classList.add("dark");
-    else document.documentElement.classList.remove("dark");
-  }, [darkMode]);
 
   // ── Account state ──
   const [username, setUsername] = useState("");

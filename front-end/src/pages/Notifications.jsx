@@ -14,6 +14,8 @@ import {
 } from "../api/notificationApi";
 import { notificationConfig } from "../utilis/notificationConfig";
 import { useAuth } from "../context/AuthContext";
+import { useNotification } from "../context/NotificationContext";
+import { useTheme } from "../context/ThemeContext";
 import { socket } from "../socket/socket";
 
 const FILTERS = ["All", "Unread", "Trending", "Payout", "Urgent", "System"];
@@ -33,23 +35,14 @@ export function formatNotificationTime(date) {
 }
 
 export default function Notifications() {
-  const [darkMode, setDarkMode] = useState(false);
+  const { darkMode, setDarkMode } = useTheme();
   const [liveUpdatesOpen, setLiveUpdatesOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [activeFilter, setActiveFilter] = useState("All");
   const { token } = useAuth();
+  const { setCount } = useNotification();
 
-  useEffect(() => {
-    document.documentElement.classList.remove("dark");
-  }, []);
 
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, [darkMode]);
 
   const [selectedNotif, setSelectedNotif] = useState(null);
   const closeButtonRef = useRef(null);
@@ -77,12 +70,13 @@ export default function Notifications() {
       try {
           const data = await getNotifications();
           setNotifications(data);
+          setCount(data.filter((n) => !n.read).length);
       } catch (error) {
           console.error(error);
       }
     };
     fetchNotifications();
-  }, []);
+  }, [setCount]);
 
   useEffect(() => {
     const handleNewNotification = (notification) => {
@@ -90,12 +84,13 @@ export default function Notifications() {
         notification,
           ...prev,
       ]);
+      setCount((prev) => prev + 1);
     };
     socket.on("newNotification", handleNewNotification);
     return () => {
         socket.off("newNotification", handleNewNotification);
     };
-  }, []);
+  }, [setCount]);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -121,14 +116,17 @@ export default function Notifications() {
           read: true
         }))
       );
+      setCount(0);
     } catch (err) {
         console.error(err);
     } 
   };
 
   const handleMarkRead = async (id) => {
-    try {
-      await markRead(id);
+    const target = notifications.find((n) => n._id === id);
+    if (target && !target.read) {
+      try {
+        await markRead(id);
         setNotifications((prev) =>
           prev.map((n) =>
             n._id === id
@@ -136,8 +134,10 @@ export default function Notifications() {
             : n
           )
         );
-    } catch (err) {
-        console.error(err);
+        setCount((prev) => Math.max(0, prev - 1));
+      } catch (err) {
+          console.error(err);
+      }
     }
   };
 
@@ -150,9 +150,13 @@ export default function Notifications() {
   const handleDelete = async (id) => {
     try {
         await deleteNotification(id);
+        const wasUnread = notifications.find((n) => n._id === id && !n.read);
         setNotifications((prev) =>
             prev.filter((n) => n._id !== id)
         );
+        if (wasUnread) {
+            setCount((prev) => Math.max(0, prev - 1));
+        }
     } catch (err) {
         console.error(err);
     }
@@ -162,6 +166,7 @@ export default function Notifications() {
     try{
       await clearNotifications();
       setNotifications([]);
+      setCount(0);
     }catch(error){
       console.error(error);
     }
@@ -209,17 +214,18 @@ export default function Notifications() {
               </div>
 
               {/* Action buttons */}
-              <div className="flex items-center gap-2 flex-wrap">
-                {unreadCount > 0 && (
+              {notifications.length > 0 && (
+                <div className="flex items-center gap-2 flex-wrap">
                   <button
                     onClick={handleMarkAllRead}
-                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white/20 hover:bg-white/35 text-white text-sm font-medium transition-all duration-200 hover:scale-[1.03] active:scale-95 shadow-sm hover:shadow-md"
+                    disabled={unreadCount === 0}
+                    className={`flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white text-sm font-medium transition-all duration-200 hover:scale-[1.03] active:scale-95 ${
+                      unreadCount === 0 ? "opacity-50 cursor-not-allowed hover:scale-100 hover:bg-white/10" : ""
+                    }`}
                   >
                     <CheckCheck size={15} />
                     Mark all read
                   </button>
-                )}
-                {notifications.length > 0 && (
                   <button
                     onClick={clearAll}
                     className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white/80 hover:text-white text-sm font-medium transition-all duration-200 hover:scale-[1.03] active:scale-95"
@@ -227,8 +233,8 @@ export default function Notifications() {
                     <Trash2 size={15} />
                     Clear all
                   </button>
-                )}
-              </div>
+                </div>
+              )}
             </div>
 
             {/* Unread badge strip */}

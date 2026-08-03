@@ -21,27 +21,31 @@ const tabs = [
   { key: "achievements", label: "Achievements" },
 ];
 
+import { useTheme } from "../context/ThemeContext";
+
 const badgeStyles = {
-  credit:
-    "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400",
-
-  deposit:
-    "bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-400",
-
-  withdrawal:
-    "bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-400",
-
-  market_buy:
-    "bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-400",
-
-  market_sell:
-    "bg-purple-100 text-purple-700 dark:bg-purple-500/15 dark:text-purple-400",
+  credit: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400",
+  CREDIT: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400",
+  debit: "bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-400",
+  DEBIT: "bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-400",
+  deposit: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400",
+  withdrawal: "bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-400",
+  reward: "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400",
+  REWARD: "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400",
+  market_buy: "bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-400",
+  MARKET_BUY: "bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-400",
+  market_sell: "bg-purple-100 text-purple-700 dark:bg-purple-500/15 dark:text-purple-400",
+  MARKET_SELL: "bg-purple-100 text-purple-700 dark:bg-purple-500/15 dark:text-purple-400",
 };
+
+const actionColorMap = badgeStyles;
+
+const fmtMoney = (val) => Number(val || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 export default function Profile() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("history");
-  const [darkMode, setDarkMode] = useState(false);
+  const { darkMode, setDarkMode } = useTheme();
   const [liveUpdatesOpen, setLiveUpdatesOpen] = useState(false);
   const [user, setUser] = useState({
     username: "",
@@ -75,23 +79,12 @@ export default function Profile() {
     },
     {
       label: "Wallet Balance",
-      value: `₹${walletBalance.toLocaleString()}`,
+      value: `₹${fmtMoney(walletBalance)}`,
       Icon: Wallet,
     },
   ];
 
-  // Always start light on mount
-  useEffect(() => {
-    document.documentElement.classList.remove("dark");
-  }, []);
 
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, [darkMode]);
 
   useEffect(() => {
 
@@ -379,12 +372,12 @@ export default function Profile() {
                             )}
 
                             {isCredit ? "+" : "-"}₹
-                            {Math.abs(item.amount).toLocaleString()}
+                            {fmtMoney(Math.abs(item.amount))}
                           </p>
 
                           <span
                             className={`mt-1 inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-medium ${
-                              badgeStyles[item.type]
+                              badgeStyles[item.type] || badgeStyles[item.type?.toLowerCase()] || "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
                             }`}
                           >
                             {item.type

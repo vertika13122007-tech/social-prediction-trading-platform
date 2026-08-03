@@ -1,6 +1,7 @@
 const Market = require("../../db/schemas/Market");
 const Position = require("../../db/schemas/Position");
 const User = require("../../db/schemas/User");
+const Transaction = require("../../db/schemas/Transaction");
 
 const walletUtils = require("../utils/walletUtils");
 const { publishEvent } = require("../utils/eventService");
@@ -339,20 +340,91 @@ const sellShares = async (req , resp) => {
     }
 };
 
-const getTradingHistory = async (req,resp) => {
+const getTradingHistory = async (req, resp) => {
+    try {
+        const transactions = await Transaction.find({ userId: req.user.id }).sort({ createdAt: -1 });
+        const positions = await Position.find({ userId: req.user.id }).populate("marketId").sort({ updatedAt: -1 });
 
-    const history = await Position.find({
-        userId: req.user.id
-    })
-    .populate("marketId","title category")
-    .sort({ updatedAt: -1});
+        const historyItems = [];
 
-    resp.json(history);
+        for (const pos of positions) {
+            if (!pos.marketId) continue;
+            const txId = `TXN-${pos._id.toString().slice(-6).toUpperCase()}`;
+            const dateStr = new Date(pos.updatedAt || pos.createdAt).toLocaleString("en-US", {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+                hour: "numeric",
+                minute: "2-digit"
+            });
 
+            if (pos.settled) {
+                historyItems.push({
+                    id: `pos-${pos._id}`,
+                    type: pos.result === "WIN" ? "Won" : "Lost",
+                    market: pos.marketId.title,
+                    date: dateStr,
+                    txId,
+                    invested: Math.round(pos.investedAmount || 0),
+                    returned: Math.round(pos.payout || 0),
+                    pnl: Math.round(pos.profitLoss || 0),
+                    status: "Completed",
+                    createdAt: pos.settledAt || pos.updatedAt
+                });
+            } else {
+                historyItems.push({
+                    id: `pos-${pos._id}`,
+                    type: "Bought",
+                    market: pos.marketId.title,
+                    date: dateStr,
+                    txId,
+                    invested: Math.round(pos.investedAmount || 0),
+                    returned: 0,
+                    pnl: 0,
+                    status: "Active",
+                    createdAt: pos.createdAt
+                });
+            }
+        }
+
+        for (const tx of transactions) {
+            const txId = `TXN-${tx._id.toString().slice(-6).toUpperCase()}`;
+            const dateStr = new Date(tx.createdAt).toLocaleString("en-US", {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+                hour: "numeric",
+                minute: "2-digit"
+            });
+
+            if (tx.type === "REWARD") {
+                historyItems.push({
+                    id: `tx-${tx._id}`,
+                    type: "Reward",
+                    market: tx.description || "Reward Badge / Bonus",
+                    date: dateStr,
+                    txId,
+                    invested: 0,
+                    returned: Math.round(tx.amount || 0),
+                    pnl: Math.round(tx.amount || 0),
+                    status: "Completed",
+                    createdAt: tx.createdAt
+                });
+            }
+        }
+
+        historyItems.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+        return resp.status(200).json(historyItems);
+    } catch (error) {
+        console.error(error);
+        return resp.status(500).json({ message: "Failed to fetch trading history" });
+    }
 };
 
 module.exports = {
     buyShares,
     getMyPosition,
-    sellShares
+    sellShares,
+    getTradingHistory
 };

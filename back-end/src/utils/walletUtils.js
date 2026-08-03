@@ -1,6 +1,7 @@
 const User = require("../../db/schemas/User");
 const Transaction = require("../../db/schemas/Transaction");
 const { publishEvent } = require("./eventService");
+const { getIO } = require("../socket/socket");
 
 const creditWallet = async(
     userId,
@@ -34,6 +35,14 @@ const creditWallet = async(
         title: "Wallet Credited",
         message: `₹${amount} hass been added to your wallet.`
     });
+
+    try {
+        const io = getIO();
+        io.emit("walletUpdated", {
+            userId: user._id.toString(),
+            walletBalance: user.walletBalance
+        });
+    } catch (e) {}
 
     return user;
 }
@@ -74,6 +83,14 @@ const debitWallet = async(
         title: "Wallet Debited",
         message: `₹${amount} deducted from your wallet.`
     });
+
+    try {
+        const io = getIO();
+        io.emit("walletUpdated", {
+            userId: user._id.toString(),
+            walletBalance: user.walletBalance
+        });
+    } catch (e) {}
 
     return user;
 }

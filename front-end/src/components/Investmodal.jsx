@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X, TrendingUp, TrendingDown, Users, Clock, DollarSign,
@@ -9,12 +10,14 @@ import { buyShares } from "../api/positionApi";
 import { getRecentActivity } from "../api/marketApi";
 
 const QUICK_AMOUNTS = [100, 500, 1000, 2000, 5000, 10000];
+const fmtMoney = (val) => Number(val || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 function AnimatedNumber({ value }) {
   return <span>{value}</span>;
 }
 
 export default function InvestModal({ trade, onClose }) {
+  const navigate = useNavigate();
   
   const [prediction, setPrediction] = useState(null); // "YES" | "NO"
   const [amount, setAmount] = useState(500);
@@ -30,9 +33,9 @@ export default function InvestModal({ trade, onClose }) {
 
   const selectedStats = prediction === "YES" ? yesStats : prediction === "NO" ? noStats : null;
   const odds      = prediction === "YES" ? trade.yesPrice : trade.noPrice;
-  const potential = +(amount * odds).toFixed(0);
+  const potential = +(amount * odds).toFixed(2);
   const profit    = potential - amount;
-  const fee       = +(amount * 0.02).toFixed(0);
+  const fee       = +(amount * 0.02).toFixed(2);
   const payable   = amount + fee;
 
   const [timeLeft, setTimeLeft] = useState({
@@ -262,13 +265,16 @@ export default function InvestModal({ trade, onClose }) {
                 </p>
                 <div className="mt-2 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800/40">
                   <span className="text-emerald-600 dark:text-emerald-400 font-bold text-sm">
-                    {prediction} · ₹{amount.toLocaleString()} · {odds}x
+                    {prediction} · ₹{fmtMoney(amount)} · {odds}x
                   </span>
                 </div>
               </div>
               <div className="flex gap-3 w-full mt-2">
                 <button
-                  onClick={onClose}
+                  onClick={() => {
+                    onClose();
+                    navigate("/portfolio");
+                  }}
                   className="flex-1 py-3 rounded-2xl border-2 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 font-semibold text-sm hover:border-blue-300 hover:text-blue-600 transition-all"
                 >
                   View Portfolio
@@ -404,16 +410,16 @@ export default function InvestModal({ trade, onClose }) {
                       {label: "Liquidity",
                         value:
                           trade.poolValue >= 100000
-                            ? `₹${(trade.poolValue / 100000).toFixed(1)}L`
+                            ? `₹${(trade.poolValue / 100000).toFixed(2)}L`
                             : trade.poolValue >= 1000
-                            ? `₹${(trade.poolValue / 1000).toFixed(1)}K`
-                            : `₹${trade.poolValue}`,
+                            ? `₹${(trade.poolValue / 1000).toFixed(2)}K`
+                            : `₹${fmtMoney(trade.poolValue)}`,
                       },
-                      { label: "Money Pooled",     value: `₹${(
+                      { label: "Money Pooled",     value: `₹${fmtMoney(
                                                                 prediction === "YES"
                                                                     ? trade.totalYesInvestment
                                                                     : trade.totalNoInvestment
-                                                            ).toLocaleString()}` },
+                                                            )}` },
                       { label: "Potential Return", value: `${multiplier.toFixed(2)}x`  },
                       { label: "Odds",             value: `${odds}x`             },
                     ].map((s, i) => (
@@ -509,12 +515,12 @@ export default function InvestModal({ trade, onClose }) {
                     <p className="text-xs font-bold text-blue-700 dark:text-blue-400 uppercase tracking-wider mb-3">Investment Summary</p>
                     {[
                       { label: "Prediction",        value: prediction,                   bold: true  },
-                      { label: "Investment",         value: `₹${amount.toLocaleString()}` },
+                      { label: "Investment",         value: `₹${fmtMoney(amount)}` },
                       { label: "Winning Odds",       value: `${odds}x`                   },
-                      { label: "Potential Return",   value: `₹${potential.toLocaleString()}`,color: "text-emerald-600 dark:text-emerald-400" },
-                      { label: "Estimated Profit",   value: `₹${profit.toLocaleString()}`, color: "text-emerald-600 dark:text-emerald-400" },
-                      { label: "Platform Fee (2%)",  value: `₹${fee}`,                   color: "text-orange-500" },
-                      { label: "Total Payable",      value: `₹${payable.toLocaleString()}`,bold: true },
+                      { label: "Potential Return",   value: `₹${fmtMoney(potential)}`,color: "text-emerald-600 dark:text-emerald-400" },
+                      { label: "Estimated Profit",   value: `₹${fmtMoney(profit)}`, color: "text-emerald-600 dark:text-emerald-400" },
+                      { label: "Platform Fee (2%)",  value: `₹${fmtMoney(fee)}`,                   color: "text-orange-500" },
+                      { label: "Total Payable",      value: `₹${fmtMoney(payable)}`,bold: true },
                     ].map((row, i) => (
                       <div key={i} className="flex items-center justify-between py-0.5">
                         <span className="text-xs text-gray-500 dark:text-gray-400">{row.label}</span>
@@ -528,10 +534,10 @@ export default function InvestModal({ trade, onClose }) {
                       <p className="text-[10px] text-gray-400 dark:text-gray-500 mb-2">If your prediction wins</p>
                       <div className="flex items-center justify-between">
                         {[
-                          { label: "Investment", val: `₹${amount.toLocaleString()}` },
+                          { label: "Investment", val: `₹${fmtMoney(amount)}` },
                           { label: "→", val: null },
-                          { label: "Return",     val: `₹${potential.toLocaleString()}`, green: true },
-                          { label: "Profit",     val: `+₹${profit.toLocaleString()}`, green: true },
+                          { label: "Return",     val: `₹${fmtMoney(potential)}`, green: true },
+                          { label: "Profit",     val: `+₹${fmtMoney(profit)}`, green: true },
                         ].map((c, i) =>
                           c.val === null ? (
                             <span key={i} className="text-gray-300 dark:text-gray-600">→</span>
@@ -578,7 +584,7 @@ export default function InvestModal({ trade, onClose }) {
                         <div className="flex items-center gap-2">
                           <span className={`w-2 h-2 rounded-full shrink-0 ${act.side === "YES" ? "bg-emerald-500" : "bg-red-400"}`} />
                           <span className="text-xs text-gray-600 dark:text-gray-400">
-                            <span className="font-semibold text-gray-800 dark:text-gray-200">{act.user}</span> invested ₹{Number(act.amount).toLocaleString()} on{" "}
+                            <span className="font-semibold text-gray-800 dark:text-gray-200">{act.user}</span> invested ₹{fmtMoney(act.amount)} on{" "}
                             <span className={`font-bold ${act.side === "YES" ? "text-emerald-600 dark:text-emerald-400" : "text-red-500 dark:text-red-400"}`}>{act.side}</span>
                           </span>
                         </div>

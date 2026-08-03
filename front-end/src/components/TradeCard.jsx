@@ -11,6 +11,8 @@ const categoryColors = {
   Trends:   "bg-teal-100 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300",
 };
 
+const fmtMoney = (val) => Number(val || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
 export default function TradeCard({ trade, onToggleSave }) {
   const { id, creator, category, title, poolValue, investors, endsAt, yesPrice, noPrice, saved } = trade;
   const [showModal, setShowModal] = useState(false);
@@ -71,16 +73,16 @@ export default function TradeCard({ trade, onToggleSave }) {
               Pool Value
             </p>
             <p className="text-sm font-bold text-gray-800 dark:text-white">
-              ₹{poolValue.toLocaleString()}
+              ₹{fmtMoney(poolValue)}
             </p>
           </div>
           <div className="bg-gray-50 dark:bg-gray-800/60 rounded-xl p-2.5">
             <div className="flex justify-between text-xs mb-2">
               <span className="text-emerald-600 font-bold">
-                YES ₹{yesPrice}
+                YES ₹{Number(yesPrice).toFixed(2)}
               </span>
               <span className="text-red-500 font-bold">
-                NO ₹{noPrice}
+                NO ₹{Number(noPrice).toFixed(2)}
               </span>
             </div>
             <div className="h-2 rounded-full overflow-hidden flex bg-gray-200 dark:bg-gray-700">

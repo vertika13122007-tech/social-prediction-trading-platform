@@ -6,21 +6,12 @@ import { Trophy, Crown, TrendingUp, Star, Users } from "lucide-react";
 import { getLeaderboard } from "../api/leaderboard";
 import { getTopCreators } from "../api/creatorApi";
 import { getTopMarkets } from "../api/marketApi";
+import { useTheme } from "../context/ThemeContext";
+
+const fmtMoney = (val) => Number(val || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 export default function Leaderboard() {
-  const [darkMode, setDarkMode] = useState(false);
-
-  useEffect(() => {
-    document.documentElement.classList.remove("dark");
-  }, []);
-
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, [darkMode]);
+  const { darkMode, setDarkMode } = useTheme();
 
   const [liveUpdatesOpen, setLiveUpdatesOpen] = useState(false);
 
@@ -196,10 +187,10 @@ export default function Leaderboard() {
                       </div>
                       <div>
                         <p className="font-semibold text-gray-900 dark:text-white">{user.name}</p>
-                        <p className="text-sm text-gray-500">Invested ₹{user.totalInvested.toFixed(2)}</p>
+                        <p className="text-sm text-gray-500">Invested ₹{fmtMoney(user.totalInvested)}</p>
                       </div>
                     </div>
-                    <div className={`${user.totalProfitLoss >= 0 ? "text-green-600" : "text-red-600"}`}>₹ {user.totalProfitLoss.toFixed(2)}</div>
+                    <div className={`${user.totalProfitLoss >= 0 ? "text-green-600" : "text-red-600"}`}>₹ {fmtMoney(user.totalProfitLoss)}</div>
                   </div>
                 ))}
               </div>
@@ -244,11 +235,11 @@ export default function Leaderboard() {
                       <div className="flex gap-8">
                         <div>
                           <p className="text-sm text-gray-400">Volume</p>
-                          <p className="text-3xl font-bold text-green-600 group-hover:scale-105 transition-transform duration-200">₹{trade.totalVolume.toFixed(2)}</p>
+                          <p className="text-3xl font-bold text-green-600 group-hover:scale-105 transition-transform duration-200">₹{fmtMoney(trade.totalVolume)}</p>
                         </div>
                         <div>
                           <p className="text-sm text-gray-400">Trade Value</p>
-                          <p className="text-2xl font-bold text-gray-900 dark:text-white">YES: ₹{trade.yesPrice}, NO: ₹{trade.noPrice}</p>
+                          <p className="text-2xl font-bold text-gray-900 dark:text-white">YES: ₹{Number(trade.yesPrice).toFixed(2)}, NO: ₹{Number(trade.noPrice).toFixed(2)}</p>
                         </div>
                       </div>
                     </div>
@@ -274,7 +265,7 @@ export default function Leaderboard() {
                     <div className="w-20 h-20 mx-auto rounded-full bg-white/20 flex items-center justify-center text-4xl mb-4">👨‍💻</div>
                     <p className="text-lg font-bold">{topCreators[1]?.name?? "No Creators Yet"}</p>
                     <div className="mt-5 space-y-2 text-sm">
-                      <p>💸 Volume : {topCreators[1]?.totalVolume.toFixed(0)}</p>
+                      <p>💸 Volume : ₹{fmtMoney(topCreators[1]?.totalVolume)}</p>
                       <p>📊 {topCreators[1]?.totalMarket} Markets</p>
                     </div>
                     <div className="mt-5 bg-white/20 rounded-full py-2 font-semibold">🥈 Rank #2</div>
@@ -286,7 +277,7 @@ export default function Leaderboard() {
                     <div className="w-24 h-24 mx-auto rounded-full bg-white/20 flex items-center justify-center text-5xl mb-5">👑</div>
                     <p className="text-2xl font-bold">{topCreators[0]?.name?? "No Creators Yet"}</p>
                     <div className="mt-6 space-y-2">
-                      <p className="text-lg">💸 Volume :  {topCreators[0]?.totalVolume.toFixed(0)}</p>
+                      <p className="text-lg">💸 Volume : ₹{fmtMoney(topCreators[0]?.totalVolume)}</p>
                       <p className="text-lg">📊 {topCreators[0]?.totalMarket} Markets</p>
                     </div>
                     <div className="mt-6 bg-white/20 rounded-full py-2 font-semibold">🏆 Rank #1</div>
@@ -298,7 +289,7 @@ export default function Leaderboard() {
                     <div className="w-20 h-20 mx-auto rounded-full bg-white/20 flex items-center justify-center text-4xl mb-4">🚀</div>
                     <p className="text-lg font-bold">{topCreators[2]?.name?? "No Creators Yet"}</p>
                     <div className="mt-5 space-y-2 text-sm">
-                      <p>💸 Volume : {topCreators[2]?.totalVolume.toFixed(0)}</p>
+                      <p>💸 Volume : ₹{fmtMoney(topCreators[2]?.totalVolume)}</p>
                       <p>📊 {topCreators[2]?.totalMarket} Markets</p>
                     </div>
                     <div className="mt-5 bg-white/20 rounded-full py-2 font-semibold">🥉 Rank #3</div>
@@ -322,7 +313,7 @@ export default function Leaderboard() {
                       </div>
                       <div>
                         <p className="font-semibold text-gray-900 dark:text-white">{creator.name}</p>
-                        <p className="text-sm text-gray-500"> Volume : {creator.totalVolume}</p>
+                        <p className="text-sm text-gray-500"> Volume : ₹{fmtMoney(creator.totalVolume)}</p>
                       </div>
                     </div>
                     <div className="text-right">

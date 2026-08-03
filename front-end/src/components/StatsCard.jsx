@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { getStats } from "../api/statsApi";
 
+const fmtMoney = (val) => Number(val || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
 export default function StatsCard() {
   const navigate = useNavigate();
 
@@ -82,7 +84,7 @@ export default function StatsCard() {
           </div>
           <p className="text-xs text-gray-400 dark:text-gray-500 mb-0.5">{stat.label}</p>
           <p className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">
-            {stat.value.toFixed(0)}
+            {stat.label === "Total Pool" ? `₹${fmtMoney(stat.value)}` : stat.value}
           </p>
         </div>
       ))}

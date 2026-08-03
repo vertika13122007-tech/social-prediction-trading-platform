@@ -242,9 +242,13 @@ import { getWallet } from "../api/walletApi";
 import { useAuth } from "../context/AuthContext";
 import { useNotification } from "../context/NotificationContext";
 import { socket } from "../socket/socket";
-import api from "../api/axios";
+import { useTheme } from "../context/ThemeContext";
 
-export default function Navbar({ darkMode, setDarkMode, liveUpdatesOpen, setLiveUpdatesOpen, searchTerm, setSearchTerm }) {
+export default function Navbar({ darkMode: propsDarkMode, setDarkMode: propsSetDarkMode, liveUpdatesOpen, setLiveUpdatesOpen, searchTerm, setSearchTerm }) {
+  const globalTheme = useTheme();
+  const darkMode = propsDarkMode !== undefined ? propsDarkMode : globalTheme.darkMode;
+  const setDarkMode = propsSetDarkMode !== undefined ? propsSetDarkMode : globalTheme.setDarkMode;
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -274,22 +278,34 @@ export default function Navbar({ darkMode, setDarkMode, liveUpdatesOpen, setLive
     };
   }, []);
 
-  useEffect(() =>{
-    const fetchWallet = async () =>{
-      try{
+  useEffect(() => {
+    const fetchWallet = async () => {
+      try {
 
         const wallet = await getWallet();
 
         setBalance(wallet.walletBalance);
 
-      }catch(error){
+      } catch (error) {
         console.error(error);
       }
     };
 
     fetchWallet();
 
-  },[]);
+  }, []);
+
+  useEffect(() => {
+    const handleWalletSocketUpdate = (data) => {
+      if (data && data.walletBalance !== undefined) {
+        setBalance(data.walletBalance);
+      }
+    };
+    socket.on("walletUpdated", handleWalletSocketUpdate);
+    return () => {
+      socket.off("walletUpdated", handleWalletSocketUpdate);
+    };
+  }, []);
 
   const handleProfileNav = (path) => {
     setProfileOpen(false);
@@ -319,21 +335,14 @@ export default function Navbar({ darkMode, setDarkMode, liveUpdatesOpen, setLive
 
   useEffect(() => {
     socket.on("newNotification", () => {
-        setCount(prev => prev + 1);
-      });
+      setCount(prev => prev + 1);
+    });
     return () => {
       socket.off("newNotification");
     };
   }, [setCount]);
 
- useEffect(() => {
-    if (!onNotifications) return;
-    async function markRead() {
-      await api.patch("/notifications/read-all");
-      setCount(0);
-    }
-    markRead();
-  }, [onNotifications]);
+
 
   return (
     <nav className="sticky top-0 z-50 bg-white dark:bg-gray-950 border-b border-gray-100 dark:border-gray-800 shadow-sm">
@@ -382,11 +391,10 @@ export default function Navbar({ darkMode, setDarkMode, liveUpdatesOpen, setLive
           <button
             onClick={() => setLiveUpdatesOpen(!liveUpdatesOpen)}
             title={liveUpdatesOpen ? "Hide Live Updates" : "Show Live Updates"}
-            className={`flex items-center gap-1.5 p-2 rounded-lg transition ${
-              liveUpdatesOpen
+            className={`flex items-center gap-1.5 p-2 rounded-lg transition ${liveUpdatesOpen
                 ? "text-blue-600 bg-blue-50 dark:bg-blue-900/30 dark:text-blue-400"
                 : "text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800"
-            }`}
+              }`}
           >
             {liveUpdatesOpen ? <PanelRightClose size={18} /> : <PanelRightOpen size={18} />}
           </button>
@@ -395,11 +403,10 @@ export default function Navbar({ darkMode, setDarkMode, liveUpdatesOpen, setLive
           <button
             onClick={() => navigate("/notifications")}
             title="Notifications"
-            className={`relative p-2 rounded-lg transition ${
-              onNotifications
+            className={`relative p-2 rounded-lg transition ${onNotifications
                 ? "text-blue-600 bg-blue-50 dark:bg-blue-900/30 dark:text-blue-400"
                 : "text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800"
-            }`}
+              }`}
           >
             <Bell size={18} />
             {!onNotifications && count > 0 && (
@@ -415,9 +422,9 @@ export default function Navbar({ darkMode, setDarkMode, liveUpdatesOpen, setLive
                           justify-center
                           text-[10px]
                           font-bold"
-            >
+              >
                 {count}
-            </span>
+              </span>
             )}
           </button>
 
@@ -425,14 +432,13 @@ export default function Navbar({ darkMode, setDarkMode, liveUpdatesOpen, setLive
           <button
             onClick={() => navigate("/wallet")}
             title="Wallet"
-            className={`hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-sm font-semibold transition ${
-              onWallet
+            className={`hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-sm font-semibold transition ${onWallet
                 ? "border-blue-300 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
                 : "border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800"
-            }`}
+              }`}
           >
             <span className="text-xs">🪙</span>
-            <span>{balance.toFixed(0)}</span>
+            <span>{Number(balance.toFixed(0)).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
           </button>
 
           {/* ── Profile Avatar + Dropdown ── */}
@@ -441,11 +447,10 @@ export default function Navbar({ darkMode, setDarkMode, liveUpdatesOpen, setLive
             <button
               onClick={() => setProfileOpen((prev) => !prev)}
               title="Profile"
-              className={`w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-xs font-bold cursor-pointer transition-all duration-200 hover:scale-110 hover:shadow-md hover:shadow-purple-300/40 dark:hover:shadow-purple-900/40 ${
-                profileOpen
+              className={`w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-xs font-bold cursor-pointer transition-all duration-200 hover:scale-110 hover:shadow-md hover:shadow-purple-300/40 dark:hover:shadow-purple-900/40 ${profileOpen
                   ? "ring-2 ring-purple-400 ring-offset-2 dark:ring-offset-gray-950 scale-110"
                   : ""
-              }`}
+                }`}
             >
               {user?.name?.charAt(0).toUpperCase() || "U"}
             </button>
@@ -530,11 +535,10 @@ export default function Navbar({ darkMode, setDarkMode, liveUpdatesOpen, setLive
           <div className="flex items-center justify-between mt-3">
             <button
               onClick={() => { navigate("/wallet"); setMobileMenuOpen(false); }}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-sm font-semibold transition ${
-                onWallet
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-sm font-semibold transition ${onWallet
                   ? "border-blue-300 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
                   : "border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300"
-              }`}
+                }`}
             >
             </button>
             <span className="text-sm text-gray-500 dark:text-gray-400">snehar.2536</span>

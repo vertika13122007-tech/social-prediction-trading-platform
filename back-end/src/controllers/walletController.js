@@ -1,6 +1,7 @@
 const User = require("../../db/schemas/User");
 const Transactions = require("../../db/schemas/Transaction");
 const { publishEvent } = require("../utils/eventService");
+const { getIO } = require("../socket/socket");
 
 const getWallet = async (req,resp) => {
     try{
@@ -64,6 +65,16 @@ const depositMoney = async (req, res) => {
             message:`₹${amount} added to wallet`
         });
 
+        try {
+            const io = getIO();
+            io.emit("walletUpdated", {
+                userId: user._id.toString(),
+                walletBalance: user.walletBalance
+            });
+        } catch (socketErr) {
+            console.error("Socket emit error:", socketErr);
+        }
+
         res.status(200).json({
             message: "Deposit successful",
             walletBalance: user.walletBalance
@@ -106,6 +117,16 @@ const withdrawMoney = async (req, res) => {
             title:"Wallet Debited",
             message:`₹${amount} is withdraw from wallet.`
         });
+
+        try {
+            const io = getIO();
+            io.emit("walletUpdated", {
+                userId: user._id.toString(),
+                walletBalance: user.walletBalance
+            });
+        } catch (socketErr) {
+            console.error("Socket emit error:", socketErr);
+        }
 
         res.status(200).json({
             message: "Withdrawal successful",

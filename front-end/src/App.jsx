@@ -21,8 +21,13 @@ import Settings from "./pages/Settings";
 import OTPVerify from "./pages/OTPVerify";
 import Profile from "./pages/Profile";
 import Portfolio from "./pages/Portfolio";
+import AdminLayout from "./components/admin/AdminLayout";
+import AdminDashboard from "./pages/AdminDashboard";
+
 
 function AnimatedRoutes() {
+
+
   const location = useLocation();
 
   // Track if user has visited /home before (i.e. just came from Login)
@@ -64,14 +69,14 @@ function AnimatedRoutes() {
               
           }
         />
-        <Route path="/notifications" 
+        <Route path="/notifications"
           element={
             
               <Notifications />
             
           } 
         />
-        <Route path="/wallet" 
+        <Route path="/wallet"
           element={
            
               <Wallet />
@@ -100,6 +105,15 @@ function AnimatedRoutes() {
           } 
         />
       </Routes>
+      <Route path="/admin" element={<AdminLayout />}>
+      <Route index element={<AdminDashboard />} />
+      <Route path="markets"   element={<AdminDashboard />} />
+      <Route path="users"     element={<AdminDashboard />} />
+      <Route path="wallet"    element={<AdminDashboard />} />
+      <Route path="analytics" element={<AdminDashboard />} />
+      <Route path="settings"  element={<AdminDashboard />} />
+      </Route>
+
     </AnimatePresence>
   );
 }

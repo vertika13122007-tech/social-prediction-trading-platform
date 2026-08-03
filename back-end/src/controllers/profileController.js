@@ -88,13 +88,13 @@ const getProfileSummary = async (req, resp) => {
 
         const winningTrades = await Position.countDocuments({
             userId: req.user.id,
-            status: "WON"
+            $or: [{ result: "WIN" }, { status: "WON" }]
         });
 
         const winRate =
             totalTrades === 0
                 ? 0
-                : ((winningTrades / totalTrades) * 100).toFixed(1);
+                : Number(((winningTrades / totalTrades) * 100).toFixed(1));
 
         return resp.json({
             totalTrades,

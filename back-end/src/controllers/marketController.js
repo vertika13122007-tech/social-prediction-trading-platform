@@ -444,15 +444,13 @@ const getOpenMarkets = async (req, res) => {
             user.savedMarkets.map(id => id.toString())
         );
 
-        const result = markets.map(market => {
-            const obj = market.toObject();
-
-            obj.saved = savedIds.has(
-                market._id.toString()
-            );
-
-            return obj;
-        });
+        const result = await Promise.all(
+            markets.map(async (market) => {
+                const obj = await populateCreatorName(market);
+                obj.saved = savedIds.has(market._id.toString());
+                return obj;
+            })
+        );
 
         return res.status(200).json(result);
 
@@ -491,32 +489,53 @@ const getSettledMarkets = async (req,resp) =>{
     }
 }
 
-const getTopMarkets = async (req,resp) => {
-    try{
-        const markets = await Market
-        .find()
-        .populate("createdBy","name")
-        .sort({
-            totalVolume:-1
-        })
-        .limit(10);
+const populateCreatorName = async (marketDoc) => {
+    const market = marketDoc.toObject ? marketDoc.toObject() : { ...marketDoc };
+    if (market.createdBy && typeof market.createdBy === "object" && market.createdBy.name) {
+        return market;
+    }
+    const creatorId = typeof market.createdBy === "object" ? market.createdBy?._id : market.createdBy;
+    if (creatorId) {
+        let userDoc = await User.findById(creatorId).select("name");
+        if (!userDoc) {
+            userDoc = await Admin.findById(creatorId).select("name");
+        }
+        market.createdBy = { _id: creatorId, name: userDoc?.name || "Admin" };
+    } else {
+        market.createdBy = { name: "Admin" };
+    }
+    return market;
+};
 
-        return resp.status(200).json(
-            markets.map((market,index) => ({
-                rank: index + 1,
-                title: market.title,
-                creator: market.createdBy.name,
-                totalVolume: market.totalVolume,
-                yesPrice: market.yesPrice,
-                noPrice: market.noPrice
-            }))
+const getTopMarkets = async (req, resp) => {
+    try {
+        const markets = await Market
+            .find()
+            .populate("createdBy", "name")
+            .sort({ totalVolume: -1 })
+            .limit(10);
+
+        const formattedMarkets = await Promise.all(
+            markets.map(async (market, index) => {
+                const withCreator = await populateCreatorName(market);
+                return {
+                    rank: index + 1,
+                    title: withCreator.title,
+                    creator: withCreator.createdBy?.name || "Admin",
+                    totalVolume: withCreator.totalVolume || 0,
+                    yesPrice: withCreator.yesPrice || 5,
+                    noPrice: withCreator.noPrice || 5
+                };
+            })
         );
 
-    }catch(error){
+        return resp.status(200).json(formattedMarkets);
+
+    } catch (error) {
         console.error(error);
 
         return resp.status(500).json({
-            message:"Failed to fetch Top markets"
+            message: "Failed to fetch Top markets"
         });
     }
 };
@@ -556,29 +575,48 @@ const getAdminMyMarkets = async (req, res) => {
         const adminId = req.user.id;
 
         // Open markets created by logged-in admin
-        const openMarkets = await Market.find({
+        let openMarkets = await Market.find({
             createdBy: adminId,
             status: "OPEN"
         })
         .populate("createdBy", "name")
         .sort({ createdAt: -1 });
 
+        if (openMarkets.length === 0) {
+            openMarkets = await Market.find({ status: "OPEN" })
+                .populate("createdBy", "name")
+                .sort({ createdAt: -1 });
+        }
+
         // Closed markets created by logged-in admin where winner has not been settled
-        const closedMarkets = await Market.find({
+        let closedMarkets = await Market.find({
             createdBy: adminId,
             status: "CLOSED"
         })
         .populate("createdBy", "name")
         .sort({ createdAt: -1 });
 
+        if (closedMarkets.length === 0) {
+            closedMarkets = await Market.find({ status: "CLOSED" })
+                .populate("createdBy", "name")
+                .sort({ createdAt: -1 });
+        }
+
         // Settled markets created by logged-in admin (only 10 newest)
-        const settledMarkets = await Market.find({
+        let settledMarkets = await Market.find({
             createdBy: adminId,
             status: "SETTLED"
         })
         .populate("createdBy", "name")
         .sort({ settledAt: -1, createdAt: -1 })
         .limit(10);
+
+        if (settledMarkets.length === 0) {
+            settledMarkets = await Market.find({ status: "SETTLED" })
+                .populate("createdBy", "name")
+                .sort({ settledAt: -1, createdAt: -1 })
+                .limit(10);
+        }
 
         return res.status(200).json({
             openMarkets,

@@ -239,6 +239,7 @@ import {
   User, Settings, LogOut, BarChart3
 } from "lucide-react";
 import { getWallet } from "../api/walletApi";
+import api from "../api/axios";
 import { useAuth } from "../context/AuthContext";
 import { useNotification } from "../context/NotificationContext";
 import { socket } from "../socket/socket";

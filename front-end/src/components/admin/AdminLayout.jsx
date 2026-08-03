@@ -1,24 +1,16 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import AdminHeader from "./AdminHeader";
 import CreateMarketModal from "./CreateMarketModal";
 import { AnimatePresence } from "framer-motion";
+import { useTheme } from "../../context/ThemeContext";
 
 export default function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
+  const { darkMode, setDarkMode } = useTheme();
   const [showCreateModal, setShowCreateModal] = useState(false);
-
-  useEffect(() => {
-    document.documentElement.classList.remove("dark");
-  }, []);
-
-  useEffect(() => {
-    if (darkMode) document.documentElement.classList.add("dark");
-    else document.documentElement.classList.remove("dark");
-  }, [darkMode]);
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-gray-950 flex transition-colors duration-200">

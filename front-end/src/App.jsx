@@ -28,6 +28,7 @@ import AdminSettings from "./pages/AdminSettings";
 import AdminMarkets from "./pages/AdminMarkets";
 import AdminUsers from "./pages/AdminUsers";
 import AdminAnalytics from "./pages/AdminAnalytics";
+import AdminLeaderboard from "./pages/AdminLeaderboard";
 
 
 function AnimatedRoutes() {
@@ -118,10 +119,11 @@ function AnimatedRoutes() {
           }
         >
           <Route index element={<AdminDashboard />} />
-          <Route path="markets"   element={<AdminMarkets />} />
-          <Route path="users"     element={<AdminUsers />} />
-          <Route path="analytics" element={<AdminAnalytics />} />
-          <Route path="settings"  element={<AdminSettings />} />
+          <Route path="markets"     element={<AdminMarkets />} />
+          <Route path="users"       element={<AdminUsers />} />
+          <Route path="leaderboard" element={<AdminLeaderboard />} />
+          <Route path="analytics"   element={<AdminAnalytics />} />
+          <Route path="settings"    element={<AdminSettings />} />
         </Route>
       </Routes>
     </AnimatePresence>

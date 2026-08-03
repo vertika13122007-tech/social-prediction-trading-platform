@@ -30,19 +30,8 @@ export default function AdminHeader({ darkMode, setDarkMode, onMenuClick, onCrea
 
         {/* Title */}
         <div className="hidden sm:block">
-          <h1 className="font-bold text-gray-900 dark:text-white text-base leading-tight">Admin Dashboard</h1>
+          <h1 className="font-bold text-gray-900 dark:text-white text-base leading-tight">Admin Panel</h1>
           <p className="text-xs text-gray-400 dark:text-gray-500">Welcome back, Admin 👋</p>
-        </div>
-
-        {/* Search */}
-        <div className="flex-1 max-w-sm mx-auto sm:mx-0 sm:ml-4 relative">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search users, markets, trades…"
-            className="w-full pl-8 pr-4 py-2 text-sm rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 placeholder-gray-400 border border-transparent focus:border-blue-400 focus:outline-none transition"
-          />
         </div>
 
         <div className="flex items-center gap-2 ml-auto shrink-0">

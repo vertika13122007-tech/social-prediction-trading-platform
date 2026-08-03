@@ -1,4 +1,5 @@
 const User = require("../../db/schemas/User");
+const Admin = require("../../db/schemas/Admin");
 const { calculatePortfolio } = require("../services/portfolioService");
 const Market  = require("../../db/schemas/Market");
 
@@ -50,55 +51,49 @@ const getLeaderboard = async ( req,resp ) => {
     }
 };
 
-const getTopCreators = async (req,resp) => {
-    try{
-        const admins = await User.find({role: "ADMIN"});
+const getTopCreators = async (req, resp) => {
+    try {
+        const adminsFromAdminSchema = await Admin.find({});
+        const adminsFromUserSchema = await User.find({ role: "ADMIN" });
+
+        const adminMap = new Map();
+        adminsFromAdminSchema.forEach(a => adminMap.set(a._id.toString(), a));
+        adminsFromUserSchema.forEach(a => adminMap.set(a._id.toString(), a));
+
+        const admins = Array.from(adminMap.values());
 
         const creators = await Promise.all(
             admins.map(async (admin) => {
                 const totalMarket = await Market.countDocuments({
-                    createdBy:admin._id
+                    createdBy: admin._id
                 });
 
-                const totalVolume = await Market.aggregate([
-                    {
-                        $match:{
-                            createdBy: admin._id
-                        }
-                    },{
-                        $group: {
-                            _id: null,
-                            volume:{
-                                $sum: "$totalVolume"
-                            }
-                        }
-                    }
+                const totalVolumeAgg = await Market.aggregate([
+                    { $match: { createdBy: admin._id } },
+                    { $group: { _id: null, volume: { $sum: "$totalVolume" } } }
                 ]);
 
                 return {
+                    _id: admin._id,
                     name: admin.name,
+                    email: admin.email,
                     totalMarket,
-                    totalVolume:
-                        totalVolume.length > 0
-                            ? totalVolume[0].volume
-                            : 0
+                    totalVolume: totalVolumeAgg.length > 0 ? totalVolumeAgg[0].volume : 0
                 };
             })
         );
 
-        creators.sort((a,b) => b.totalVolume - a.totalVolume);
+        creators.sort((a, b) => b.totalVolume - a.totalVolume);
 
-        resp.json(
-            creators.map((creator,index) => ({
+        return resp.status(200).json(
+            creators.map((creator, index) => ({
                 rank: index + 1,
                 ...creator
             }))
         );
-    }catch(error){
+    } catch (error) {
         console.error(error);
-        resp.status(500).json({
-            message: "Failed to fetch creators"
-        });
+        return resp.status(500).json({ message: "Failed to fetch creators" });
     }
 };
 

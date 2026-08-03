@@ -3,17 +3,18 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, TrendingUp, Users, Wallet,
-  BarChart3, Settings, LogOut, ChevronLeft, ChevronRight, TrendingDown
+  BarChart3, Settings, LogOut, ChevronLeft, ChevronRight, TrendingDown, Trophy
 } from "lucide-react";
 
 import { useAuth } from "../../context/AuthContext";
 
 const NAV_ITEMS = [
-  { label: "Dashboard",  icon: LayoutDashboard, path: "/admin",            color: "text-blue-500",   bg: "bg-blue-50 dark:bg-blue-900/30"    },
-  { label: "Markets",    icon: TrendingUp,       path: "/admin/markets",    color: "text-teal-500",   bg: "bg-teal-50 dark:bg-teal-900/30"    },
-  { label: "Users",      icon: Users,            path: "/admin/users",      color: "text-purple-500", bg: "bg-purple-50 dark:bg-purple-900/30"},
-  { label: "Analytics",  icon: BarChart3,        path: "/admin/analytics",  color: "text-orange-500", bg: "bg-orange-50 dark:bg-orange-900/30"},
-  { label: "Settings",   icon: Settings,         path: "/admin/settings",   color: "text-gray-500",   bg: "bg-gray-100 dark:bg-gray-800"      },
+  { label: "Dashboard",   icon: LayoutDashboard, path: "/admin",            color: "text-blue-500",   bg: "bg-blue-50 dark:bg-blue-900/30"    },
+  { label: "Markets",     icon: TrendingUp,       path: "/admin/markets",    color: "text-teal-500",   bg: "bg-teal-50 dark:bg-teal-900/30"    },
+  { label: "Users",       icon: Users,            path: "/admin/users",      color: "text-purple-500", bg: "bg-purple-50 dark:bg-purple-900/30"},
+  { label: "Leaderboard", icon: Trophy,           path: "/admin/leaderboard",color: "text-amber-500",  bg: "bg-amber-50 dark:bg-amber-900/30" },
+  { label: "Analytics",   icon: BarChart3,        path: "/admin/analytics",  color: "text-orange-500", bg: "bg-orange-50 dark:bg-orange-900/30"},
+  { label: "Settings",    icon: Settings,         path: "/admin/settings",   color: "text-gray-500",   bg: "bg-gray-100 dark:bg-gray-800"      },
 ];
 
 export default function Sidebar({ sidebarOpen, setSidebarOpen, mobileSidebarOpen, setMobileSidebarOpen }) {

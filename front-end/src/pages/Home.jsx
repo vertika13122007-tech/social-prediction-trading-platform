@@ -130,7 +130,7 @@ export default function Home({ firstVisit = false, onMount }) {
           setTrades(
             markets.map((market) => ({
               id: market._id,
-              creator: market.createdBy.name,
+              creator: market.createdBy?.name || "Admin",
               category: market.category,
               title: market.title,
               poolValue: market.totalVolume || 0,

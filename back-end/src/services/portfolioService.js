@@ -35,13 +35,36 @@ const calculatePortfolio = async (userId) => {
 
             const investedAmount = position.investedAmount || (position.shares * position.averageBuyPrice);
 
-            const currentPriceRaw = position.side === "YES" ? market.yesPrice : market.noPrice;
+            let currentPriceRaw = 0;
+            let currentValue = 0;
+            let profitLoss = 0;
 
-            const currentValue = position.shares * currentPriceRaw;
+            const isSettled = market.status === "SETTLED" || position.settled;
+            const isWinner = position.result === "WIN" || (market.winningSide && position.side === market.winningSide);
 
-            const profitLoss = currentValue - investedAmount;
+            if (isSettled) {
+                if (isWinner) {
+                    const WINNING_SHARE_VALUE = 10;
+                    currentValue = position.payout != null ? position.payout : (position.shares * WINNING_SHARE_VALUE);
+                    profitLoss = currentValue - investedAmount;
+                    currentPriceRaw = 10;
+                } else {
+                    currentValue = 0;
+                    profitLoss = -investedAmount;
+                    currentPriceRaw = 0;
+                }
+                // When market settles, money is no longer active in open market (reduces active totalInvested)
+            } else {
+                currentPriceRaw = position.side === "YES" ? market.yesPrice : market.noPrice;
+                currentValue = position.shares * currentPriceRaw;
+                profitLoss = currentValue - investedAmount;
 
-            totalInvested += investedAmount;
+                // Active invested amount only includes open markets
+                if (market.status === "OPEN") {
+                    totalInvested += investedAmount;
+                }
+            }
+
             totalCurrentValue += currentValue;
             totalProfitLoss += profitLoss;
 
@@ -62,13 +85,14 @@ const calculatePortfolio = async (userId) => {
                 currentPrice: currentPriceRaw / 10,
                 qty: position.shares,
                 totalInvest: Math.round(investedAmount),
-                status: market.status === "OPEN" ? "LIVE" : "CLOSED",
+                status: market.status === "OPEN" ? "LIVE" : market.status === "SETTLED" ? "SETTLED" : "CLOSED",
                 timeLeft: getTimeLeft(market.endsAt),
                 endsAt: market.endsAt,
                 investors: market.participationCount || 0,
                 winProb,
                 roi: roiStr,
-                pnl: Math.round(profitLoss)
+                pnl: Math.round(profitLoss),
+                result: isSettled ? (isWinner ? "WIN" : "LOSS") : null
             };
         });
 

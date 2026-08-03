@@ -10,7 +10,7 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer
 } from "recharts";
-import { getWallet, getTransactions, deposit,withdraw, getWalletAnalytics } from "../api/walletApi";
+import { getWallet, getTransactions, deposit, withdraw, getWalletStats } from "../api/walletApi";
 import { useTheme } from "../context/ThemeContext";
 
 const fmtMoney = (val) => Number(val || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -135,23 +135,23 @@ export default function Wallet() {
 
   useEffect(() => {
     const fetchWallet = async () => {
-      try{
+      try {
 
         const tx = await getTransactions();
-        const analytics = await getWalletAnalytics();
+        const stats = await getWalletStats();
 
-        setBalance(analytics.walletBalance);
-        setTotalInvested(analytics.totalInvested);
-        setTotalEarned(analytics.totalEarned);
-        setWinRate(analytics.winRate);
+        setBalance(stats.walletBalance || 0);
+        setTotalInvested(stats.totalInvested || 0);
+        setTotalEarned(stats.totalEarned || 0);
+        setWinRate(stats.winRate || 0);
 
         setChartData(
-          analytics.weeklyBalance || []
+          stats.weeklyBalance || []
         );
 
         setTransactions(tx.map(formatTransaction));
 
-      }catch(error){
+      } catch (error) {
         console.error(error);
       }
     };
@@ -173,8 +173,8 @@ export default function Wallet() {
   const handleDeposit = async () => {
     const amt = parseInt(inputAmount);
     if (!amt || amt <= 0) return;
-    
-    try{
+
+    try {
       await deposit(amt);
 
       const wallet = await getWallet();
@@ -186,7 +186,7 @@ export default function Wallet() {
       setInputAmount("");
       setShowDeposit(false);
 
-    }catch(error){
+    } catch (error) {
 
       console.error(error);
 
@@ -196,7 +196,7 @@ export default function Wallet() {
   const handleWithdraw = async () => {
     const amt = parseInt(inputAmount);
     if (!amt || amt <= 0 || amt > balance) return;
-    try{
+    try {
 
       await withdraw(amt);
 
@@ -209,7 +209,7 @@ export default function Wallet() {
       setInputAmount("");
       setShowWithdraw(false);
 
-    }catch(error){
+    } catch (error) {
       console.error(error);
     }
 
@@ -361,14 +361,18 @@ export default function Wallet() {
               </p>
             </div>
 
-            {/* Total Earned */}
+            {/* Profit / Loss */}
             <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-4 text-center shadow-sm hover:shadow-lg dark:hover:shadow-gray-900/60 hover:-translate-y-1 hover:scale-[1.01] transition-all duration-300 group">
-              <div className="w-9 h-9 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform duration-300">
-                <TrendingUp size={18} className="text-emerald-500" />
+              <div className={`w-9 h-9 rounded-xl ${totalEarned >= 0 ? "bg-emerald-100 dark:bg-emerald-900/30" : "bg-red-100 dark:bg-red-900/30"} flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform duration-300`}>
+                {totalEarned >= 0 ? (
+                  <TrendingUp size={18} className="text-emerald-500" />
+                ) : (
+                  <TrendingDown size={18} className="text-red-500" />
+                )}
               </div>
-              <p className="text-[11px] text-gray-400 dark:text-gray-500 mb-0.5">Total Earned</p>
-              <p className="text-base sm:text-lg font-bold text-emerald-600 dark:text-emerald-400">
-                🪙 {fmtMoney(totalEarned)}
+              <p className="text-[11px] text-gray-400 dark:text-gray-500 mb-0.5">Profit / Loss</p>
+              <p className={`text-base sm:text-lg font-bold ${totalEarned >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-500 dark:text-red-400"}`}>
+                🪙{totalEarned >= 0 ? "+" : "-"} {fmtMoney(Math.abs(totalEarned))}
               </p>
             </div>
 
@@ -406,8 +410,8 @@ export default function Wallet() {
               <AreaChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="balanceGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%"  stopColor="#3b82f6" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}   />
+                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" className="dark:stroke-gray-800" />
@@ -425,8 +429,8 @@ export default function Wallet() {
                 />
                 <defs>
                   <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%"   stopColor="#2563eb" />
-                    <stop offset="50%"  stopColor="#06b6d4" />
+                    <stop offset="0%" stopColor="#2563eb" />
+                    <stop offset="50%" stopColor="#06b6d4" />
                     <stop offset="100%" stopColor="#0d9488" />
                   </linearGradient>
                 </defs>
@@ -447,11 +451,10 @@ export default function Wallet() {
                   <button
                     key={f}
                     onClick={() => setFilter(f)}
-                    className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all duration-200 hover:scale-[1.04] active:scale-95 ${
-                      filter === f
-                        ? "bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-600 text-white shadow-md"
-                        : "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
-                    }`}
+                    className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all duration-200 hover:scale-[1.04] active:scale-95 ${filter === f
+                      ? "bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-600 text-white shadow-md"
+                      : "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700"
+                      }`}
                   >
                     {f}
                   </button>

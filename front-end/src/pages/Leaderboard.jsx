@@ -215,11 +215,11 @@ export default function Leaderboard() {
           {activeTab === "Most Profitable" && (
             <>
               <div className="mb-8 max-w-5xl mx-auto px-6">
-                <h2 className="text-3xl font-bold text-gray-900 dark:text-white">💰 Most Profitable Trades</h2>
-                <p className="text-gray-500 mt-2">Highest Money Volume prediction markets this season</p>
+                <h2 className="text-3xl font-bold text-gray-900 dark:text-white">💰 Top 20 Most Profitable Trades</h2>
+                <p className="text-gray-500 mt-2">Highest Money Volume & newest prediction markets this season</p>
               </div>
               <div className="space-y-5 mb-8">
-                {topTrades.map((trade, index) => (
+                {topTrades.slice(0, 20).map((trade, index) => (
                   <div
                     key={index}
                     className="bg-white dark:bg-gray-900 rounded-3xl p-6 border border-gray-100 dark:border-gray-800 shadow-md dark:shadow-gray-900/50 hover:shadow-2xl dark:hover:shadow-gray-900/70 hover:-translate-y-1 hover:border-gray-200 dark:hover:border-gray-700 transition-all duration-300 group"

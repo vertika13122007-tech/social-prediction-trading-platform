@@ -288,7 +288,7 @@ export default function Portfolio() {
           {
             id: `${m._id}-YES`,
             marketId: m._id,
-            seller: m.createdBy?.name || "Market Creator",
+            seller: m.createdBy?.name || m.creator || "Admin",
             market: m.title,
             prediction: "YES",
             sellPrice: m.yesPrice ? m.yesPrice / 10 : 0.5,
@@ -299,7 +299,7 @@ export default function Portfolio() {
           {
             id: `${m._id}-NO`,
             marketId: m._id,
-            seller: m.createdBy?.name || "Market Creator",
+            seller: m.createdBy?.name || m.creator || "Admin",
             market: m.title,
             prediction: "NO",
             sellPrice: m.noPrice ? m.noPrice / 10 : 0.5,
@@ -327,13 +327,31 @@ export default function Portfolio() {
   const totalInvest  = portfolioData.totalInvested || 0;
   const totalPnl     = portfolioData.totalProfitLoss || 0;
   const totalReturn  = portfolioData.totalCurrentValue || (totalInvest + totalPnl);
-  const openPositionsList = portfolioData.positions || [];
+  const allPositions = portfolioData.positions || [];
+  const liveOpenPositions = allPositions.filter(p => p.status === "LIVE" || p.status === "OPEN");
+  const settledPositions  = allPositions.filter(p => p.status === "SETTLED");
+  const activePositionsCount = liveOpenPositions.length;
 
-  const filteredHist = history.filter(h => {
-    const matchFilter = histFilter === "All" || h.type === histFilter || (histFilter === "Rewards" && h.type === "Reward");
-    const matchSearch = h.market.toLowerCase().includes(search.toLowerCase()) || h.txId.toLowerCase().includes(search.toLowerCase());
-    return matchFilter && matchSearch;
-  });
+  const settledAsHistory = settledPositions.map(p => ({
+    id: `settled-${p.id}`,
+    txId: `STL-${String(p.id).slice(-6).toUpperCase()}`,
+    type: p.result === "WIN" ? "Reward" : "Bought",
+    market: p.title,
+    invested: p.totalInvest,
+    returned: p.result === "WIN" ? (p.totalInvest + p.pnl) : 0,
+    pnl: p.pnl,
+    date: p.endsAt ? new Date(p.endsAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "Settled"
+  }));
+
+  const combinedHistory = [...settledAsHistory, ...history];
+
+  const filteredHist = combinedHistory
+    .filter(h => {
+      const matchFilter = histFilter === "All" || h.type === histFilter || (histFilter === "Rewards" && (h.type === "Reward" || h.type === "CREDIT"));
+      const matchSearch = (h.market || "").toLowerCase().includes(search.toLowerCase()) || (h.txId || "").toLowerCase().includes(search.toLowerCase());
+      return matchFilter && matchSearch;
+    })
+    .slice(0, 20);
 
   const cardVariants = {
     hidden: { opacity: 0, y: 18 },
@@ -363,8 +381,8 @@ export default function Portfolio() {
             {[
               { label: "Total Invested", value: `₹${fmtMoney(totalInvest)}`, icon: <DollarSign size={18} />, bg: "bg-blue-100 dark:bg-blue-900/30", ic: "text-blue-600 dark:text-blue-400" },
               { label: "Current Value",  value: `₹${fmtMoney(totalReturn)}`, icon: <Wallet size={18} />,     bg: "bg-teal-100 dark:bg-teal-900/30",  ic: "text-teal-600 dark:text-teal-400"  },
-              { label: "Total P&L",      value: `${totalPnl >= 0 ? "+" : ""}₹${fmtMoney(totalPnl)}`, icon: <TrendingUp size={18} />, bg: totalPnl >= 0 ? "bg-emerald-100 dark:bg-emerald-900/30" : "bg-red-100 dark:bg-red-900/30", ic: totalPnl >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-500" },
-              { label: "Positions",      value: `${openPositionsList.length} Active`,  icon: <Activity size={18} />,   bg: "bg-purple-100 dark:bg-purple-900/30", ic: "text-purple-600 dark:text-purple-400" },
+              { label: "Total P&L",      value: `${totalPnl >= 0 ? "+" : "-"}₹${fmtMoney(Math.abs(totalPnl))}`, icon: <TrendingUp size={18} />, bg: totalPnl >= 0 ? "bg-emerald-100 dark:bg-emerald-900/30" : "bg-red-100 dark:bg-red-900/30", ic: totalPnl >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-500" },
+              { label: "Positions",      value: `${activePositionsCount} Active`,  icon: <Activity size={18} />,   bg: "bg-purple-100 dark:bg-purple-900/30", ic: "text-purple-600 dark:text-purple-400" },
             ].map((s, i) => (
               <motion.div key={i} variants={cardVariants} initial="hidden" animate="show"
                 whileHover={{ y: -3, boxShadow: "0 12px 32px rgba(0,0,0,0.08)" }} transition={{ duration: 0.3 }}
@@ -396,9 +414,9 @@ export default function Portfolio() {
             {activeTab === "Open Positions" && (
               <motion.div key="open" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.3 }} className="space-y-6">
 
-                {openPositionsList.length > 0 ? (
+                {liveOpenPositions.length > 0 ? (
                   <div className="space-y-4">
-                    {openPositionsList.map((pos, i) => {
+                    {liveOpenPositions.map((pos, i) => {
                       const isProfit = pos.pnl >= 0;
                       const isLive   = pos.status === "LIVE";
                       return (
@@ -413,6 +431,10 @@ export default function Portfolio() {
                                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${categoryColors[pos.category] || "bg-gray-100 text-gray-600"}`}>{pos.category}</span>
                                 {isLive
                                   ? <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 dark:text-emerald-400"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />LIVE</span>
+                                  : pos.status === "SETTLED"
+                                  ? <span className={`flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${pos.result === "WIN" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300" : "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300"}`}>
+                                      {pos.result === "WIN" ? "🏆 WON" : "❌ LOST"}
+                                    </span>
                                   : <span className="flex items-center gap-1 text-[10px] font-bold text-gray-400"><Lock size={10} />CLOSED</span>
                                 }
                                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${pos.prediction === "YES" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400" : "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400"}`}>

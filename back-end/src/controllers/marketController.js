@@ -2,6 +2,7 @@ const Market = require("../../db/schemas/Market");
 const Position = require("../../db/schemas/Position");
 const walletUtils = require("../utils/walletUtils");
 const User = require("../../db/schemas/User");
+const Admin = require("../../db/schemas/Admin");
 const { publishEvent } = require("../utils/eventService");
 const { emitLiveUpdate } = require("../utils/liveUpdateService");
 
@@ -491,29 +492,53 @@ const getSettledMarkets = async (req,resp) =>{
 
 const populateCreatorName = async (marketDoc) => {
     const market = marketDoc.toObject ? marketDoc.toObject() : { ...marketDoc };
-    if (market.createdBy && typeof market.createdBy === "object" && market.createdBy.name) {
-        return market;
+    let creatorId = null;
+    if (market.createdBy) {
+        if (typeof market.createdBy === "object" && market.createdBy._id) {
+            creatorId = market.createdBy._id;
+        } else if (typeof market.createdBy !== "object") {
+            creatorId = market.createdBy;
+        }
     }
-    const creatorId = typeof market.createdBy === "object" ? market.createdBy?._id : market.createdBy;
+
+    let creatorName = (market.createdBy && typeof market.createdBy === "object" && market.createdBy.name) ? market.createdBy.name : null;
+
     if (creatorId) {
         let userDoc = await User.findById(creatorId).select("name");
         if (!userDoc) {
             userDoc = await Admin.findById(creatorId).select("name");
         }
-        market.createdBy = { _id: creatorId, name: userDoc?.name || "Admin" };
-    } else {
-        market.createdBy = { name: "Admin" };
+        if (userDoc?.name) {
+            creatorName = userDoc.name;
+        }
     }
+
+    if (!creatorName) {
+        const firstAdmin = await Admin.findOne().select("name");
+        creatorName = firstAdmin?.name || "Admin";
+    }
+
+    market.createdBy = { _id: creatorId, name: creatorName };
+    market.creator = creatorName;
     return market;
 };
 
 const getTopMarkets = async (req, resp) => {
     try {
-        const markets = await Market
-            .find()
-            .populate("createdBy", "name")
-            .sort({ totalVolume: -1 })
-            .limit(10);
+        let markets = await Market
+            .find({ status: "OPEN" })
+            .sort({ totalVolume: -1, createdAt: -1 })
+            .limit(20);
+
+        if (markets.length < 20) {
+            const remainingCount = 20 - markets.length;
+            const openIds = markets.map(m => m._id);
+            const additionalMarkets = await Market
+                .find({ _id: { $nin: openIds } })
+                .sort({ totalVolume: -1, createdAt: -1 })
+                .limit(remainingCount);
+            markets = [...markets, ...additionalMarkets];
+        }
 
         const formattedMarkets = await Promise.all(
             markets.map(async (market, index) => {
@@ -521,10 +546,11 @@ const getTopMarkets = async (req, resp) => {
                 return {
                     rank: index + 1,
                     title: withCreator.title,
-                    creator: withCreator.createdBy?.name || "Admin",
+                    creator: withCreator.createdBy?.name || withCreator.creator || "Admin",
                     totalVolume: withCreator.totalVolume || 0,
                     yesPrice: withCreator.yesPrice || 5,
-                    noPrice: withCreator.noPrice || 5
+                    noPrice: withCreator.noPrice || 5,
+                    createdAt: withCreator.createdAt
                 };
             })
         );

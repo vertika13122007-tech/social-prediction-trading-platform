@@ -4,6 +4,7 @@ import {
   X, TrendingUp, Clock, CheckCircle, Plus, Calendar, FileText, Tag, ArrowRight
 } from "lucide-react";
 import { createMarket } from "../../api/marketApi";
+import { playInvestSound } from "../../utils/soundUtils";
 
 const CATEGORIES = ["SPORTS", "CREATORS", "MEMES", "PRODUCTS", "TRENDS"];
 
@@ -71,6 +72,7 @@ export default function CreateMarketModal({ onClose, onMarketCreated }) {
       });
 
       setCreatedMarketTitle(title);
+      playInvestSound();
       setSuccess(true);
       if (onMarketCreated) onMarketCreated(response.market);
     } catch (err) {

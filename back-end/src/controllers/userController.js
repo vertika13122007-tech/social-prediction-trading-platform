@@ -140,11 +140,15 @@ const getNotificationSettings = async (req, res) => {
             user = await Admin.findById(req.user.id);
         }
 
-        if (!user) {
-            return res.json({});
-        }
-
-        return res.json(user.notificationSettings || {});
+        const defaults = {
+            tradeUpdates: true,
+            priceAlerts: true,
+            payouts: true,
+            leaderboard: false,
+            marketing: false,
+            sound: true,
+        };
+        return res.json({ ...defaults, ...(user.notificationSettings || {}) });
 
     } catch (err) {
         return res.status(500).json({

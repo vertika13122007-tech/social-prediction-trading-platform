@@ -572,51 +572,13 @@ const getRecentActivity = async (req, res) => {
 
 const getAdminMyMarkets = async (req, res) => {
     try {
-        const adminId = req.user.id;
+        const rawOpen = await Market.find({ status: "OPEN" }).populate("createdBy", "name").sort({ createdAt: -1 });
+        const rawClosed = await Market.find({ status: "CLOSED" }).populate("createdBy", "name").sort({ createdAt: -1 });
+        const rawSettled = await Market.find({ status: "SETTLED" }).populate("createdBy", "name").sort({ settledAt: -1, createdAt: -1 });
 
-        // Open markets created by logged-in admin
-        let openMarkets = await Market.find({
-            createdBy: adminId,
-            status: "OPEN"
-        })
-        .populate("createdBy", "name")
-        .sort({ createdAt: -1 });
-
-        if (openMarkets.length === 0) {
-            openMarkets = await Market.find({ status: "OPEN" })
-                .populate("createdBy", "name")
-                .sort({ createdAt: -1 });
-        }
-
-        // Closed markets created by logged-in admin where winner has not been settled
-        let closedMarkets = await Market.find({
-            createdBy: adminId,
-            status: "CLOSED"
-        })
-        .populate("createdBy", "name")
-        .sort({ createdAt: -1 });
-
-        if (closedMarkets.length === 0) {
-            closedMarkets = await Market.find({ status: "CLOSED" })
-                .populate("createdBy", "name")
-                .sort({ createdAt: -1 });
-        }
-
-        // Settled markets created by logged-in admin (only 10 newest)
-        let settledMarkets = await Market.find({
-            createdBy: adminId,
-            status: "SETTLED"
-        })
-        .populate("createdBy", "name")
-        .sort({ settledAt: -1, createdAt: -1 })
-        .limit(10);
-
-        if (settledMarkets.length === 0) {
-            settledMarkets = await Market.find({ status: "SETTLED" })
-                .populate("createdBy", "name")
-                .sort({ settledAt: -1, createdAt: -1 })
-                .limit(10);
-        }
+        const openMarkets = await Promise.all(rawOpen.map(m => populateCreatorName(m)));
+        const closedMarkets = await Promise.all(rawClosed.map(m => populateCreatorName(m)));
+        const settledMarkets = await Promise.all(rawSettled.map(m => populateCreatorName(m)));
 
         return res.status(200).json({
             openMarkets,

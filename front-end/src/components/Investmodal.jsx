@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { buyShares } from "../api/positionApi";
 import { getRecentActivity } from "../api/marketApi";
+import { playInvestSound } from "../utils/soundUtils";
 
 const QUICK_AMOUNTS = [100, 500, 1000, 2000, 5000, 10000];
 const fmtMoney = (val) => Number(val || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -120,6 +121,7 @@ export default function InvestModal({ trade, onClose }) {
 
         console.log("API Response:", response);
 
+        playInvestSound();
         setSuccess(true);
 
     } catch (err) {

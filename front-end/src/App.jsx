@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { playClickSound } from "./utils/soundUtils";
 import {
   BrowserRouter,
   Routes,
@@ -130,9 +131,28 @@ function AnimatedRoutes() {
   );
 }
 
+function GlobalClickListener() {
+  useEffect(() => {
+    const handleGlobalClick = (e) => {
+      const target = e.target.closest("button, a, [role='button'], input[type='submit'], input[type='button'], .cursor-pointer");
+      if (target) {
+        playClickSound();
+      }
+    };
+
+    document.addEventListener("click", handleGlobalClick, { capture: true });
+    return () => {
+      document.removeEventListener("click", handleGlobalClick, { capture: true });
+    };
+  }, []);
+
+  return null;
+}
+
 function App() {
   return (
     <BrowserRouter>
+      <GlobalClickListener />
       <AnimatedRoutes />
     </BrowserRouter>
   );

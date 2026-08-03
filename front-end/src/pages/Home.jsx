@@ -10,7 +10,7 @@ import { SlidersHorizontal, ChevronDown, HelpCircle, X, Sparkles, ExternalLink, 
 import { getOpenMarkets,saveMarket,unsaveMarket } from "../api/marketApi";
 import { useAuth } from "../context/AuthContext";
 import { sendMessage } from "../api/chatApi";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { socket } from "../socket/socket";
 
 import { useTheme } from "../context/ThemeContext";
@@ -48,10 +48,12 @@ export default function Home({ firstVisit = false, onMount }) {
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [showAIChat, setShowAIChat] = useState(false);
   const [showHelpMenu, setShowHelpMenu] = useState(false);
+  const [showHelpModal, setShowHelpModal] = useState(false);
+  const [helpDocTab, setHelpDocTab] = useState("How to trade");
   const [aiInput, setAiInput] = useState("");
   const [trades, setTrades] = useState([]);
   const [aiMessages, setAiMessages] = useState([
-    { role: "assistant", text: "Hi! I'm your AI trading assistant 🤖 Ask me anything about trades, predictions, or market trends!" }
+    { sender: "ai", text: "Hi! I'm your AI trading assistant 🤖 Ask me anything about trades, predictions, or ask 'How to trade in Social Prediction Platform'!" }
   ]);
   const [loading, setLoading] = useState(false);
   const sortMenuRef = useRef(null);
@@ -236,11 +238,10 @@ export default function Home({ firstVisit = false, onMount }) {
   });
   }
 
-  const handleAISend = async () => {
+  const handleAISend = async (customMsg) => {
+    const userMessage = typeof customMsg === "string" ? customMsg : aiInput;
 
-    if (!aiInput.trim()) return;
-
-    const userMessage = aiInput;
+    if (!userMessage.trim()) return;
 
     // Add user's message
     setAiMessages((prev) => [
@@ -284,7 +285,9 @@ export default function Home({ firstVisit = false, onMount }) {
             const updated = [...prev];
             updated[updated.length - 1] = {
                 sender: "ai",
-                text: "Sorry, something went wrong.",
+                text: userMessage.includes("How to trade")
+                  ? "📈 Trading Guide on Social Prediction Platform:\n\n1. Browse open markets (Sports, Creators, Memes, Products, Trends).\n2. Choose YES if you predict it happens, or NO if not.\n3. Click Invest, select your amount (₹100, ₹500, ₹1000 or custom) and confirm.\n4. Track P&L in Portfolio. You can sell early or hold until settlement when winning shares pay ₹10.00 each!"
+                  : "Sorry, something went wrong. Please try again.",
                 typing: false,
             };
             return updated;
@@ -426,7 +429,7 @@ export default function Home({ firstVisit = false, onMount }) {
       <div className="fixed bottom-6 right-6 flex flex-col items-end gap-3 z-50">
 
         {showHelpMenu && (
-          <div className="mb-1 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl shadow-xl w-56 overflow-hidden">
+          <div className="mb-1 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl shadow-xl w-60 overflow-hidden">
             <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-800">
               <span className="font-semibold text-sm text-gray-800 dark:text-white">Help & Support</span>
               <button onClick={() => setShowHelpMenu(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
@@ -434,7 +437,15 @@ export default function Home({ firstVisit = false, onMount }) {
               </button>
             </div>
             {HELP_ITEMS.map((item, i) => (
-              <button key={i} className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition text-left">
+              <button
+                key={i}
+                onClick={() => {
+                  setHelpDocTab(item.label);
+                  setShowHelpModal(true);
+                  setShowHelpMenu(false);
+                }}
+                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition text-left"
+              >
                 <span className="w-7 h-7 rounded-lg bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
                   {item.icon}
                 </span>
@@ -448,7 +459,7 @@ export default function Home({ firstVisit = false, onMount }) {
         )}
 
         {showAIChat && (
-          <div className="mb-1 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl shadow-xl w-72 overflow-hidden flex flex-col" style={{ height: 360 }}>
+          <div className="mb-1 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-2xl shadow-xl w-80 overflow-hidden flex flex-col" style={{ height: 400 }}>
             <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-blue-600 to-teal-600">
               <div className="flex items-center gap-2">
                 <Sparkles size={15} className="text-white" />
@@ -463,24 +474,11 @@ export default function Home({ firstVisit = false, onMount }) {
               {aiMessages.map((msg, i) => (
                 <motion.div
                     key={i}
-                    initial={{
-                        opacity:0,
-                        y:15
-                    }}
-                    animate={{
-                        opacity:1,
-                        y:0
-                    }}
-                    transition={{
-                        duration:0.25
-                    }}
-                    className={`flex ${
-                        msg.sender === "user"
-                            ? "justify-end"
-                            : "justify-start"
-                    }`}
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.25 }}
+                    className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
                 >
-
                     <div
                         className={`max-w-[85%] text-xs px-3.5 py-2.5 rounded-xl leading-relaxed whitespace-pre-wrap ${
                             msg.sender === "user"
@@ -489,35 +487,33 @@ export default function Home({ firstVisit = false, onMount }) {
                         }`}
                     >
                         {msg.typing ? (
-
                           <div className="flex gap-1">
-
-                              <span className="w-2 h-2 rounded-full bg-blue-500 animate-bounce"></span>
-
-                              <span
-                                  className="w-2 h-2 rounded-full bg-blue-500 animate-bounce"
-                                  style={{animationDelay:"0.15s"}}
-                              ></span>
-
-                              <span
-                                  className="w-2 h-2 rounded-full bg-blue-500 animate-bounce"
-                                  style={{animationDelay:"0.3s"}}
-                              ></span>
-
+                              <span className="w-2 h-2 rounded-full bg-blue-500 animate-bounce" />
+                              <span className="w-2 h-2 rounded-full bg-blue-500 animate-bounce" style={{ animationDelay: "0.15s" }} />
+                              <span className="w-2 h-2 rounded-full bg-blue-500 animate-bounce" style={{ animationDelay: "0.3s" }} />
                           </div>
-
-                          ):(
-
+                        ) : (
                           msg.text
-
-                          )}
+                        )}
                     </div>
-
                 </motion.div>
-
-                ))}
+              ))}
             </div>
-            <div className="px-3 py-3 border-t border-gray-100 dark:border-gray-800 flex gap-2">
+
+            {/* Quick AI Suggestion Prompt */}
+            <div className="px-3 pt-2 pb-1 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/40 flex flex-wrap gap-1.5">
+              <button
+                onClick={() => {
+                  handleAISend("How to trade in Social Prediction Platform");
+                }}
+                className="text-[10px] font-semibold px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/50 transition flex items-center gap-1"
+              >
+                <Sparkles size={10} />
+                How to trade in Social Prediction Platform
+              </button>
+            </div>
+
+            <div className="px-3 py-2.5 border-t border-gray-100 dark:border-gray-800 flex gap-2">
               <input
                 value={aiInput}
                 onChange={(e) => setAiInput(e.target.value)}
@@ -525,7 +521,7 @@ export default function Home({ firstVisit = false, onMount }) {
                 placeholder="Ask about trades..."
                 className="flex-1 text-xs px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-400"
               />
-              <button onClick={handleAISend} className="px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition">
+              <button onClick={() => handleAISend()} className="px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition">
                 Send
               </button>
             </div>
@@ -553,6 +549,225 @@ export default function Home({ firstVisit = false, onMount }) {
           </button>
         </div>
       </div>
+
+      {/* ── Help & Documentation Modal ── */}
+      <AnimatePresence>
+        {showHelpModal && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center px-4 py-6 bg-black/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 rounded-3xl shadow-2xl max-w-2xl w-full max-h-[85vh] flex flex-col overflow-hidden"
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-800 bg-slate-50/50 dark:bg-gray-900/50">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold">
+                    📚
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-gray-900 dark:text-white text-base">Help & Platform Documentation</h3>
+                    <p className="text-xs text-gray-400">Everything you need to know about trading & rules</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowHelpModal(false)}
+                  className="p-2 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Tab Switcher */}
+              <div className="flex border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/40 p-1.5 gap-1 overflow-x-auto">
+                {[
+                  { id: "How to trade", label: "How to Trade", icon: <BookOpen size={14} /> },
+                  { id: "Documentation", label: "Full Documentation", icon: <ExternalLink size={14} /> },
+                  { id: "Support chat", label: "Support & FAQs", icon: <HeadphonesIcon size={14} /> },
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setHelpDocTab(tab.id)}
+                    className={`flex-1 min-w-[120px] py-2 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all ${
+                      helpDocTab === tab.id
+                        ? "bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500 text-white shadow-md"
+                        : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+                    }`}
+                  >
+                    {tab.icon}
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Scrollable Content Body */}
+              <div className="flex-1 overflow-y-auto p-6 space-y-6 text-sm text-gray-700 dark:text-gray-300">
+
+                {/* TAB 1: HOW TO TRADE */}
+                {helpDocTab === "How to trade" && (
+                  <div className="space-y-5">
+                    <div className="p-4 rounded-2xl bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/30 flex items-start gap-3">
+                      <Sparkles className="text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" size={18} />
+                      <div>
+                        <h4 className="font-bold text-gray-900 dark:text-white text-sm">How to Trade on Social Prediction Platform</h4>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                          Predict outcomes on trending events in Sports, Creators, Memes, Products, and Trends. Earn real payouts when your predictions come true!
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div className="flex gap-3 items-start">
+                        <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">1</span>
+                        <div>
+                          <h5 className="font-bold text-gray-900 dark:text-white text-xs">Select a Market & Outcome</h5>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">
+                            Browse categories or use search to find active events. Choose <strong>YES</strong> if you predict the event will happen, or <strong>NO</strong> if you predict it won't.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-3 items-start">
+                        <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">2</span>
+                        <div>
+                          <h5 className="font-bold text-gray-900 dark:text-white text-xs">Evaluate Prices & Potential Payout</h5>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">
+                            Share prices dynamically range between ₹0.50 and ₹9.50 based on market probability. If your outcome wins, each share pays out <strong>₹10.00</strong> at market settlement!
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-3 items-start">
+                        <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">3</span>
+                        <div>
+                          <h5 className="font-bold text-gray-900 dark:text-white text-xs">Enter Amount & Confirm Trade</h5>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">
+                            Click "Invest", enter your trading amount (or choose quick presets like ₹100, ₹500, ₹1,000), review estimated shares, and confirm your investment.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-3 items-start">
+                        <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">4</span>
+                        <div>
+                          <h5 className="font-bold text-gray-900 dark:text-white text-xs">Track P&L & Sell Positions Early</h5>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">
+                            Visit your <strong>Portfolio</strong> to view real-time Profit & Loss. You can hold until settlement or use the <strong>Sell</strong> feature to exit trades early for profit.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* TAB 2: FULL DOCUMENTATION */}
+                {helpDocTab === "Documentation" && (
+                  <div className="space-y-5">
+                    <div className="p-4 rounded-2xl bg-teal-50 dark:bg-teal-900/20 border border-teal-100 dark:border-teal-800/30">
+                      <h4 className="font-bold text-gray-900 dark:text-white text-sm">System Mechanics & Trading Rules</h4>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                        Detailed technical overview of market states, settlement rules, and portfolio calculation logic.
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="p-3.5 rounded-2xl bg-gray-50 dark:bg-gray-800/60 border border-gray-100 dark:border-gray-700/50">
+                        <h5 className="font-bold text-gray-900 dark:text-white text-xs mb-1">🟢 Market Lifecycle</h5>
+                        <p className="text-[11px] text-gray-500 dark:text-gray-400 leading-relaxed">
+                          <strong>OPEN</strong>: Trading active.<br/>
+                          <strong>CLOSED</strong>: Expiry reached, awaiting settlement.<br/>
+                          <strong>SETTLED</strong>: Outcome declared & payouts distributed.
+                        </p>
+                      </div>
+
+                      <div className="p-3.5 rounded-2xl bg-gray-50 dark:bg-gray-800/60 border border-gray-100 dark:border-gray-700/50">
+                        <h5 className="font-bold text-gray-900 dark:text-white text-xs mb-1">💰 Payout Formula</h5>
+                        <p className="text-[11px] text-gray-500 dark:text-gray-400 leading-relaxed">
+                          Winning Share Value = <strong>₹10.00</strong><br/>
+                          Payout = Shares Owned × ₹10.00.<br/>
+                          Losing shares resolve to ₹0.00.
+                        </p>
+                      </div>
+
+                      <div className="p-3.5 rounded-2xl bg-gray-50 dark:bg-gray-800/60 border border-gray-100 dark:border-gray-700/50">
+                        <h5 className="font-bold text-gray-900 dark:text-white text-xs mb-1">📜 Wallet & Ledger</h5>
+                        <p className="text-[11px] text-gray-500 dark:text-gray-400 leading-relaxed">
+                          Every transaction (Market Buy, Sell, Payout Reward) is logged immutably in your account ledger.
+                        </p>
+                      </div>
+
+                      <div className="p-3.5 rounded-2xl bg-gray-50 dark:bg-gray-800/60 border border-gray-100 dark:border-gray-700/50">
+                        <h5 className="font-bold text-gray-900 dark:text-white text-xs mb-1">🏆 Leaderboard Scoring</h5>
+                        <p className="text-[11px] text-gray-500 dark:text-gray-400 leading-relaxed">
+                          Traders ranked by net portfolio profit. Top creators ranked by market liquidity created.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* TAB 3: SUPPORT CHAT & FAQS */}
+                {helpDocTab === "Support chat" && (
+                  <div className="space-y-4">
+                    <div className="p-4 rounded-2xl bg-purple-50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800/30">
+                      <h4 className="font-bold text-gray-900 dark:text-white text-sm">Frequently Asked Questions & Support</h4>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                        Have questions? Find quick answers or ask our 24/7 AI Assistant below.
+                      </p>
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className="p-3.5 rounded-2xl bg-gray-50 dark:bg-gray-800/60 border border-gray-100 dark:border-gray-700/50">
+                        <h5 className="font-bold text-gray-900 dark:text-white text-xs mb-1">Q: How are market outcomes verified?</h5>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          Platform administrators declare winners using verifiable, real-world public data sources upon event completion.
+                        </p>
+                      </div>
+
+                      <div className="p-3.5 rounded-2xl bg-gray-50 dark:bg-gray-800/60 border border-gray-100 dark:border-gray-700/50">
+                        <h5 className="font-bold text-gray-900 dark:text-white text-xs mb-1">Q: Can I exit a trade before the market ends?</h5>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          Yes! Go to your Portfolio tab and click "Sell" on any active open position to cash out instantly at current market value.
+                        </p>
+                      </div>
+
+                      <div className="p-3.5 rounded-2xl bg-gray-50 dark:bg-gray-800/60 border border-gray-100 dark:border-gray-700/50">
+                        <h5 className="font-bold text-gray-900 dark:text-white text-xs mb-1">Q: Are there any trading or withdrawal fees?</h5>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          No! Trading, position liquidations, and settlements carry zero hidden commission fees.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+              </div>
+
+              {/* Modal Footer */}
+              <div className="p-4 border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 flex items-center justify-between gap-3">
+                <button
+                  onClick={() => {
+                    setShowHelpModal(false);
+                    setShowAIChat(true);
+                    handleAISend("How to trade in Social Prediction Platform");
+                  }}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-teal-500 text-white text-xs font-bold hover:scale-[1.02] active:scale-95 transition shadow-sm"
+                >
+                  <Sparkles size={14} />
+                  Ask AI Assistant "How to trade in Social Prediction Platform"
+                </button>
+                <button
+                  onClick={() => setShowHelpModal(false)}
+                  className="px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 text-xs font-bold hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+                >
+                  Close
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
     </div>
   );

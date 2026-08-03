@@ -9,6 +9,7 @@ import { useAuth } from "../context/AuthContext";
 import { updateUsername, changePassword, getNotificationSettings, updateNotificationSettings } from "../api/userApi";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
+import { playClickSound } from "../utils/soundUtils";
 
 // Reusable toggle switch
 function Toggle({ checked, onChange }) {
@@ -60,13 +61,19 @@ export default function AdminSettings() {
   const [themeMode, setThemeMode] = useState(darkMode ? "dark" : "light");
 
   // ── Admin Notifications state ──
-  const [adminNotifSettings, setAdminNotifSettings] = useState({
-    systemAlerts: true,
-    newRegistrations: true,
-    highVolumeTrades: true,
-    disputeAlerts: true,
-    payoutAlerts: true,
-    sound: true,
+  const [adminNotifSettings, setAdminNotifSettings] = useState(() => {
+    const saved = localStorage.getItem("adminNotifSettings");
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) {}
+    }
+    return {
+      systemAlerts: true,
+      newRegistrations: true,
+      highVolumeTrades: true,
+      disputeAlerts: true,
+      payoutAlerts: true,
+      sound: true,
+    };
   });
 
   // ── Security state ──
@@ -108,7 +115,13 @@ export default function AdminSettings() {
     async function fetchSettings() {
       try {
         const settings = await getNotificationSettings();
-        setAdminNotifSettings((prev) => ({ ...prev, ...settings }));
+        if (settings) {
+          setAdminNotifSettings((prev) => {
+            const merged = { ...prev, ...settings };
+            localStorage.setItem("adminNotifSettings", JSON.stringify(merged));
+            return merged;
+          });
+        }
       } catch (err) {
         console.log(err);
       }
@@ -116,12 +129,14 @@ export default function AdminSettings() {
     fetchSettings();
   }, []);
 
-  const toggleNotif = async (key) => {
+  const toggleAdminNotif = async (key) => {
+    playClickSound();
     const updated = {
       ...adminNotifSettings,
       [key]: !adminNotifSettings[key],
     };
     setAdminNotifSettings(updated);
+    localStorage.setItem("adminNotifSettings", JSON.stringify(updated));
     try {
       await updateNotificationSettings(updated);
     } catch (err) {

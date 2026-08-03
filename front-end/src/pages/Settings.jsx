@@ -11,6 +11,7 @@ import { useAuth } from "../context/AuthContext";
 import { updateUsername, changePassword, getNotificationSettings } from "../api/userApi";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
+import { playClickSound } from "../utils/soundUtils";
 
 // Reusable toggle switch
 function Toggle({ checked, onChange }) {
@@ -64,13 +65,19 @@ export default function Settings() {
   const [themeMode, setThemeMode] = useState("light"); // light | dark | system
 
   // ── Notifications state ──
-  const [notifSettings, setNotifSettings] = useState({
-    tradeUpdates: true,
-    priceAlerts: true,
-    payouts: true,
-    leaderboard: false,
-    marketing: false,
-    sound: true,
+  const [notifSettings, setNotifSettings] = useState(() => {
+    const saved = localStorage.getItem("userNotifSettings");
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) {}
+    }
+    return {
+      tradeUpdates: true,
+      priceAlerts: true,
+      payouts: true,
+      leaderboard: false,
+      marketing: false,
+      sound: true,
+    };
   });
 
   // ── Privacy / Security state ──
@@ -82,9 +89,6 @@ export default function Settings() {
   const [twoFA, setTwoFA] = useState(false);
   const [profileVisible, setProfileVisible] = useState(true);
   const [showActivity, setShowActivity] = useState(true);
-  const [sound, setSound] = useState(
-    localStorage.getItem("sound") === "true"
-  );
 
   const handleThemeChange = (mode) => {
     setThemeMode(mode);
@@ -127,22 +131,26 @@ export default function Settings() {
   useEffect(() => {
     async function fetchSettings() {
       try {
-        const settings =
-          await getNotificationSettings();
+        const settings = await getNotificationSettings();
+        if (settings) {
           setNotifSettings(settings);
-      } catch (err) {
-            console.log(err);
+          localStorage.setItem("userNotifSettings", JSON.stringify(settings));
         }
+      } catch (err) {
+        console.log(err);
+      }
     }
     fetchSettings();
   }, []);
 
   const toggleNotif = async (key) => {
+    playClickSound();
     const updated = {
         ...notifSettings,
         [key]: !notifSettings[key],
     };
     setNotifSettings(updated);
+    localStorage.setItem("userNotifSettings", JSON.stringify(updated));
     try {
       await updateNotificationSettings(updated);
     } catch (err) {

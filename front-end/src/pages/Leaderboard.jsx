@@ -133,7 +133,7 @@ export default function Leaderboard() {
           {activeTab === "Top Traders" && (
             <>
               <div className="mb-8 max-w-5xl mx-auto px-8">
-                <h2 className="text-3xl font-bold text-gray-900 dark:text-white">Top Traders</h2>
+                <h2 className="text-3xl font-bold text-gray-900 dark:text-white flex items-center gap-2">👑 Top Traders</h2>
                 <p className="text-gray-500 mt-2">Highest performing traders ranked by profit and win rate</p>
               </div>
 
@@ -144,8 +144,8 @@ export default function Leaderboard() {
                   <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl p-6 text-white text-center shadow-xl hover:-translate-y-2 hover:shadow-[0_25px_50px_rgba(59,130,246,0.35)] transition-all duration-300">
                     <div className="text-5xl mb-3">🥈</div>
                     <h3 className="text-xl font-bold">{topTraders[1]?.name?? "No Trader Yet"}</h3>
-                    <p className="text-3xl font-bold mt-3">{topTraders[1]?.totalProfitLoss.toFixed(0)}</p>
-                    <p className="mt-3 text-sm">{topTraders[1]?.totalInvested.toFixed(0)}</p>
+                    <p className="text-3xl font-bold mt-3">₹{fmtMoney(topTraders[1]?.totalProfitLoss)}</p>
+                    <p className="mt-3 text-sm">Invested: ₹{fmtMoney(topTraders[1]?.totalInvested)}</p>
                     <div className="mt-4 bg-white/20 rounded-full py-1">Rank #2</div>
                   </div>
                 </div>
@@ -154,8 +154,8 @@ export default function Leaderboard() {
                   <div className="bg-gradient-to-br from-yellow-400 via-orange-400 to-orange-600 rounded-3xl p-8 text-white text-center shadow-2xl md:scale-105 hover:-translate-y-2 hover:shadow-[0_30px_60px_rgba(251,146,60,0.45)] transition-all duration-300">
                     <div className="text-6xl mb-4">👑</div>
                     <h3 className="text-2xl font-bold">{topTraders[0]?.name?? "No Trader Yet"}</h3>
-                    <p className="text-4xl font-bold mt-4">{topTraders[0]?.totalProfitLoss.toFixed(0)}</p>
-                    <p className="mt-4">{topTraders[0]?.totalInvested.toFixed(0)}</p>
+                    <p className="text-4xl font-bold mt-4">₹{fmtMoney(topTraders[0]?.totalProfitLoss)}</p>
+                    <p className="mt-4">Invested: ₹{fmtMoney(topTraders[0]?.totalInvested)}</p>
                     <div className="mt-5 bg-white/20 rounded-full py-2 font-semibold">🏆 Rank #1</div>
                   </div>
                 </div>
@@ -164,8 +164,8 @@ export default function Leaderboard() {
                   <div className="bg-gradient-to-br from-orange-500 to-red-600 rounded-3xl p-6 text-white text-center shadow-xl hover:-translate-y-2 hover:shadow-[0_25px_50px_rgba(239,68,68,0.35)] transition-all duration-300">
                     <div className="text-5xl mb-3">🥉</div>
                     <h3 className="text-xl font-bold">{topTraders[2]?.name?? "No Trader Yet"}</h3>
-                    <p className="text-3xl font-bold mt-3">{topTraders[2]?.totalProfitLoss.toFixed(0)}</p>
-                    <p className="mt-3 text-sm">{topTraders[2]?.totalInvested.toFixed(0)}</p>
+                    <p className="text-3xl font-bold mt-3">₹{fmtMoney(topTraders[2]?.totalProfitLoss)}</p>
+                    <p className="mt-3 text-sm">Invested: ₹{fmtMoney(topTraders[2]?.totalInvested)}</p>
                     <div className="mt-4 bg-white/20 rounded-full py-1">Rank #3</div>
                   </div>
                 </div>
@@ -190,7 +190,9 @@ export default function Leaderboard() {
                         <p className="text-sm text-gray-500">Invested ₹{fmtMoney(user.totalInvested)}</p>
                       </div>
                     </div>
-                    <div className={`${user.totalProfitLoss >= 0 ? "text-green-600" : "text-red-600"}`}>₹ {fmtMoney(user.totalProfitLoss)}</div>
+                    <div className={`font-bold text-base ${user.totalProfitLoss >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}`}>
+                      {user.totalProfitLoss >= 0 ? "+" : ""}₹{fmtMoney(user.totalProfitLoss)}
+                    </div>
                   </div>
                 ))}
               </div>

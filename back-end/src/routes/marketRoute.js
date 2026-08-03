@@ -16,7 +16,8 @@ const {
     getOpenMarkets,
     getSettledMarkets,
     getTopMarkets,
-    getRecentActivity
+    getRecentActivity,
+    getAdminMyMarkets
 } = require("../controllers/marketController");
 const adminMiddleware = require("../middleware/adminMiddleware");
 const {
@@ -26,8 +27,14 @@ const {
 
 router.post(
     "/",
-    adminMiddleware,
+    authMiddleware,
     createMarket
+);
+
+router.get(
+    "/admin/my-markets",
+    authMiddleware,
+    getAdminMyMarkets
 );
 
 
@@ -77,7 +84,6 @@ router.get(
 router.patch(
     "/:id/close",
     authMiddleware,
-    adminMiddleware,
     closeMarket
 );
 
@@ -88,14 +94,12 @@ router.delete("/:id/save", authMiddleware, unsaveMarket);
 router.patch(
     "/:id/declare-winner",
     authMiddleware,
-    adminMiddleware,
     declareWinner
 );
 
 router.patch(
     "/:id/settleMarket",
     authMiddleware,
-    adminMiddleware,
     settleMarket
 )
 

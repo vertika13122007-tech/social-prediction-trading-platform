@@ -10,6 +10,7 @@ import { AnimatePresence } from "framer-motion";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 import GuestRoute from "./components/GuestRoute";
+import AdminRoute from "./components/AdminRoute";
 
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -23,6 +24,8 @@ import Profile from "./pages/Profile";
 import Portfolio from "./pages/Portfolio";
 import AdminLayout from "./components/admin/AdminLayout";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminSettings from "./pages/AdminSettings";
+import AdminMarkets from "./pages/AdminMarkets";
 
 
 function AnimatedRoutes() {
@@ -104,16 +107,22 @@ function AnimatedRoutes() {
             </ProtectedRoute>
           } 
         />
+        <Route
+          path="/admin"
+          element={
+            <AdminRoute>
+              <AdminLayout />
+            </AdminRoute>
+          }
+        >
+          <Route index element={<AdminDashboard />} />
+          <Route path="markets"   element={<AdminMarkets />} />
+          <Route path="users"     element={<AdminDashboard />} />
+          <Route path="wallet"    element={<AdminDashboard />} />
+          <Route path="analytics" element={<AdminDashboard />} />
+          <Route path="settings"  element={<AdminSettings />} />
+        </Route>
       </Routes>
-      <Route path="/admin" element={<AdminLayout />}>
-      <Route index element={<AdminDashboard />} />
-      <Route path="markets"   element={<AdminDashboard />} />
-      <Route path="users"     element={<AdminDashboard />} />
-      <Route path="wallet"    element={<AdminDashboard />} />
-      <Route path="analytics" element={<AdminDashboard />} />
-      <Route path="settings"  element={<AdminDashboard />} />
-      </Route>
-
     </AnimatePresence>
   );
 }

@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react";
-import { Outlet, useNavigate, useLocation } from "react-router-dom";
+import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import AdminHeader from "./AdminHeader";
-import { Menu } from "lucide-react";
+import CreateMarketModal from "./CreateMarketModal";
+import { AnimatePresence } from "framer-motion";
 
 export default function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   useEffect(() => {
     document.documentElement.classList.remove("dark");
@@ -42,11 +44,24 @@ export default function AdminLayout() {
           darkMode={darkMode}
           setDarkMode={setDarkMode}
           onMenuClick={() => setMobileSidebarOpen(true)}
+          onCreateMarketClick={() => setShowCreateModal(true)}
         />
         <main className="flex-1 px-4 sm:px-6 py-6 overflow-auto">
           <Outlet />
         </main>
       </div>
+
+      {/* Create Market Modal */}
+      <AnimatePresence>
+        {showCreateModal && (
+          <CreateMarketModal
+            onClose={() => setShowCreateModal(false)}
+            onMarketCreated={() => {
+              // Can trigger refresh if needed
+            }}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }

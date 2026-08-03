@@ -1,14 +1,20 @@
 import { useState } from "react";
-import { Search, Bell, Moon, Sun, RefreshCw, Plus, Menu } from "lucide-react";
+import { Search, Moon, Sun, RefreshCw, Plus, Menu } from "lucide-react";
 import { motion } from "framer-motion";
 
-export default function AdminHeader({ darkMode, setDarkMode, onMenuClick }) {
+export default function AdminHeader({ darkMode, setDarkMode, onMenuClick, onCreateMarketClick, onRefresh }) {
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState("");
 
   const handleRefresh = () => {
     setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 1200);
+    if (onRefresh) {
+      onRefresh();
+    } else {
+      // Reload current page data
+      window.location.reload();
+    }
+    setTimeout(() => setRefreshing(false), 1000);
   };
 
   return (
@@ -44,6 +50,7 @@ export default function AdminHeader({ darkMode, setDarkMode, onMenuClick }) {
           <button
             onClick={() => setDarkMode(!darkMode)}
             className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+            title="Toggle Theme"
           >
             {darkMode ? <Sun size={17} /> : <Moon size={17} />}
           </button>
@@ -51,22 +58,23 @@ export default function AdminHeader({ darkMode, setDarkMode, onMenuClick }) {
           {/* Refresh */}
           <button
             onClick={handleRefresh}
-            className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition"
-            title="Refresh"
+            disabled={refreshing}
+            className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition disabled:opacity-50"
+            title="Refresh Page & Data"
           >
-            <motion.div animate={refreshing ? { rotate: 360 } : { rotate: 0 }} transition={{ duration: 0.8, ease: "linear", repeat: refreshing ? Infinity : 0 }}>
+            <motion.div
+              animate={refreshing ? { rotate: 360 } : { rotate: 0 }}
+              transition={{ duration: 0.8, ease: "linear", repeat: refreshing ? Infinity : 0 }}
+            >
               <RefreshCw size={17} />
             </motion.div>
           </button>
 
-          {/* Notifications */}
-          <button className="relative p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition">
-            <Bell size={17} />
-            <span className="absolute top-1 right-1 w-3.5 h-3.5 bg-red-500 text-white text-[8px] rounded-full flex items-center justify-center font-bold">4</span>
-          </button>
-
           {/* Create Market */}
-          <button className="hidden sm:flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500 text-white text-xs font-bold hover:scale-[1.03] active:scale-95 transition-all shadow-md hover:shadow-lg">
+          <button
+            onClick={onCreateMarketClick}
+            className="hidden sm:flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500 text-white text-xs font-bold hover:scale-[1.03] active:scale-95 transition-all shadow-md hover:shadow-lg"
+          >
             <Plus size={14} />
             Create Market
           </button>

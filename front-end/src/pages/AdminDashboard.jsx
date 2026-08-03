@@ -4,7 +4,6 @@ import AdminCharts      from "../components/admin/AdminCharts";
 import MarketsTable     from "../components/admin/MarketsTable";
 import UsersTable       from "../components/admin/UsersTable";
 import Transactions     from "../components/admin/Transactions";
-import QuickActions     from "../components/admin/QuickActions";
 import ActivityTimeline from "../components/admin/ActivityTimeline";
 import NotificationsPanel from "../components/admin/NotificationsPanel";
 
@@ -26,11 +25,10 @@ export default function AdminDashboard() {
       {/* Markets table */}
       <MarketsTable />
 
-      {/* Three-column section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      {/* Two-column section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <UsersTable />
         <Transactions />
-        <QuickActions />
       </div>
 
       {/* Bottom row */}

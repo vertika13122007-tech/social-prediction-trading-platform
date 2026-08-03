@@ -551,6 +551,48 @@ const getRecentActivity = async (req, res) => {
     }
 };
 
+const getAdminMyMarkets = async (req, res) => {
+    try {
+        const adminId = req.user.id;
+
+        // Open markets created by logged-in admin
+        const openMarkets = await Market.find({
+            createdBy: adminId,
+            status: "OPEN"
+        })
+        .populate("createdBy", "name")
+        .sort({ createdAt: -1 });
+
+        // Closed markets created by logged-in admin where winner has not been settled
+        const closedMarkets = await Market.find({
+            createdBy: adminId,
+            status: "CLOSED"
+        })
+        .populate("createdBy", "name")
+        .sort({ createdAt: -1 });
+
+        // Settled markets created by logged-in admin (only 10 newest)
+        const settledMarkets = await Market.find({
+            createdBy: adminId,
+            status: "SETTLED"
+        })
+        .populate("createdBy", "name")
+        .sort({ settledAt: -1, createdAt: -1 })
+        .limit(10);
+
+        return res.status(200).json({
+            openMarkets,
+            closedMarkets,
+            settledMarkets
+        });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            message: "Failed to fetch admin markets."
+        });
+    }
+};
+
 module.exports = {
     createMarket,
     getAllMarkets,
@@ -563,5 +605,6 @@ module.exports = {
     getOpenMarkets,
     getSettledMarkets,
     getTopMarkets,
-    getRecentActivity
+    getRecentActivity,
+    getAdminMyMarkets
 };

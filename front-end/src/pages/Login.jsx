@@ -98,7 +98,11 @@ export default function Login() {
         response.user
       );
 
-      navigate("/home");
+      if (response.user?.role === "ADMIN" || role === "ADMIN") {
+        navigate("/admin");
+      } else {
+        navigate("/home");
+      }
     } catch (err) {
       console.error(err);
       setErrors({

@@ -2,7 +2,13 @@ const express = require("express");
 const router = express.Router();
 
 const authMiddleware = require("../middleware/authMiddleware");
-const { updateUsername, changePassword, getNotificationSettings, updateNotificationSettings } = require("../controllers/userController");
+const { updateUsername, changePassword, getNotificationSettings, updateNotificationSettings, getAllUsers } = require("../controllers/userController");
+
+router.get(
+    "/all",
+    authMiddleware,
+    getAllUsers
+);
 
 router.put(
     "/username", 

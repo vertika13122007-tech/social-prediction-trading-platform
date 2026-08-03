@@ -2,10 +2,10 @@ const bcrypt = require('bcryptjs');
 const jwt = require("jsonwebtoken");
 
 const User = require("../../db/schemas/User");
+const Admin = require("../../db/schemas/Admin");
 const OTP = require("../../db/schemas/OTP");
 const generateOTP = require("../utils/generateOTP");
 const { sendOTPEmail, sendForgotPasswordEmail } = require("../services/emailService");
-const Transactions = require("../../db/schemas/Transaction");
 const walletUtils = require("../utils/walletUtils");
 const { publishEvent } = require("../utils/eventService");
 
@@ -20,7 +20,7 @@ const registerUser = async (req,resp) =>{
             });
         }
         
-        const existingUser = await User.findOne({email});
+        const existingUser = await User.findOne({email}) || await Admin.findOne({email});
         if(existingUser){
             return resp.status(400).json({
                 message:"User already exists",
@@ -88,12 +88,30 @@ const verifyOTP = async (req,resp) => {
         }
 
         const hashPassword = await bcrypt.hash(otpRecord.password,10);
+        const role = otpRecord.role || "USER";
 
+        if (role === "ADMIN") {
+            const admin = await Admin.create({
+                name: otpRecord.name,
+                email: otpRecord.email,
+                password: hashPassword,
+                role: "ADMIN"
+            });
+
+            await OTP.deleteOne({_id : otpRecord._id});
+
+            return resp.status(201).json({
+                message: "Admin account has been verified",
+                userId: admin._id,
+            });
+        }
+
+        // Standard User account creation
         const user = await User.create({
             name: otpRecord.name,
             email: otpRecord.email,
             password: hashPassword,
-            role: otpRecord.role || "USER"
+            role: "USER"
         });
 
         await walletUtils.creditWallet(
@@ -144,16 +162,22 @@ const loginUser = async (req,resp) => {
             });
         }
 
-        const userRecord = await User.findOne({email});
+        let userRecord = null;
+
+        if (requestedRole === "ADMIN") {
+            userRecord = await Admin.findOne({email}) || await User.findOne({email, role: "ADMIN"});
+        } else {
+            userRecord = await User.findOne({email, role: "USER"}) || await User.findOne({email});
+        }
 
         if( !userRecord ){
             return resp.status(404).json({
-                message:"User not found"
+                message:"Account not found"
             });
         }
 
         // Validate role match
-        const userRole = (userRecord.role || "USER").toUpperCase();
+        const userRole = (userRecord.role || (userRecord instanceof Admin ? "ADMIN" : "USER")).toUpperCase();
         if (userRole !== requestedRole) {
             return resp.status(403).json({
                 message: requestedRole === "ADMIN" 
@@ -172,7 +196,7 @@ const loginUser = async (req,resp) => {
 
         const token = jwt.sign({
                 id: userRecord._id,
-                role: userRecord.role,
+                role: userRole,
                 email: userRecord.email
             },
             process.env.JWT_SECRET,
@@ -188,7 +212,7 @@ const loginUser = async (req,resp) => {
                 id: userRecord._id,
                 name: userRecord.name,
                 email:userRecord.email,
-                role: userRecord.role
+                role: userRole
             }
         });
 
@@ -209,12 +233,18 @@ const forgotPassword = async (req, resp) => {
             return resp.status(400).json({ message: "Email is required" });
         }
 
-        const user = await User.findOne({ email });
+        let user = await Admin.findOne({ email });
+        let userRole = "ADMIN";
+
         if (!user) {
-            return resp.status(404).json({ message: "No user found with this email" });
+            user = await User.findOne({ email });
+            userRole = user ? (user.role || "USER").toUpperCase() : "USER";
         }
 
-        const userRole = (user.role || "USER").toUpperCase();
+        if (!user) {
+            return resp.status(404).json({ message: "No account found with this email" });
+        }
+
         if (requestedRole && userRole !== requestedRole) {
             return resp.status(403).json({
                 message: requestedRole === "ADMIN" 
@@ -270,7 +300,13 @@ const resetPassword = async (req, resp) => {
 
         const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-        await User.findOneAndUpdate({ email }, { password: hashedPassword });
+        const adminDoc = await Admin.findOne({ email });
+        if (adminDoc) {
+            adminDoc.password = hashedPassword;
+            await adminDoc.save();
+        } else {
+            await User.findOneAndUpdate({ email }, { password: hashedPassword });
+        }
 
         await OTP.deleteOne({ _id: otpRecord._id });
 

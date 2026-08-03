@@ -27,7 +27,7 @@ export const changePassword = async (
 export const getNotificationSettings = async () => {
 
     const res = await api.get(
-        "/users/notification-settings"
+        "/user/notification-settings"
     );
 
     return res.data;
@@ -36,9 +36,14 @@ export const getNotificationSettings = async () => {
 export const updateNotificationSettings = async (settings) => {
 
     const res = await api.put(
-        "/users/notification-settings",
+        "/user/notification-settings",
         settings
     );
 
     return res.data;
+};
+
+export const getAllUsers = async () => {
+    const response = await api.get("/user/all");
+    return response.data;
 };

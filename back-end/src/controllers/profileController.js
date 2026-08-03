@@ -1,4 +1,5 @@
 const User = require("../../db/schemas/User");
+const Admin = require("../../db/schemas/Admin");
 const Position = require("../../db/schemas/Position");
 const WalletTranscation = require("../../db/schemas/Transaction");
 const { calculatePortfolio } = require("../services/portfolioService");
@@ -6,13 +7,30 @@ const { getUserRank } = require("../services/leaderboardService");
 
 const getUserProfile = async (req, resp) => {
     try {
-        const currentUser = await User.findById(req.user.id).select(
+        let currentUser = await User.findById(req.user.id).select(
             "name email walletBalance role avatar"
         );
 
         if (!currentUser) {
+            currentUser = await Admin.findById(req.user.id).select(
+                "name email role"
+            );
+        }
+
+        if (!currentUser) {
             return resp.status(404).json({
                 message: "User not found"
+            });
+        }
+
+        if (currentUser.role === "ADMIN") {
+            return resp.status(200).json({
+                name: currentUser.name,
+                email: currentUser.email,
+                walletBalance: 0,
+                role: "ADMIN",
+                avatar: null,
+                rank: "Admin"
             });
         }
 

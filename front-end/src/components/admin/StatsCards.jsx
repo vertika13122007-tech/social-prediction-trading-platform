@@ -1,19 +1,13 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Users, TrendingUp, Activity, DollarSign } from "lucide-react";
-
-const STATS = [
-  { label:"Total Users",     value:1250,    prefix:"",  suffix:"",   trend:"+8%",  up:true,  icon:Users,      bg:"from-blue-500 to-blue-700",    shadow:"shadow-blue-200/50 dark:shadow-blue-900/30"    },
-  { label:"Open Markets",    value:18,      prefix:"",  suffix:"",   trend:"+3",   up:true,  icon:TrendingUp, bg:"from-teal-500 to-teal-700",    shadow:"shadow-teal-200/50 dark:shadow-teal-900/30"    },
-  { label:"Total Trades",    value:45820,   prefix:"",  suffix:"",   trend:"+12%", up:true,  icon:Activity,   bg:"from-purple-500 to-purple-700", shadow:"shadow-purple-200/50 dark:shadow-purple-900/30"},
-  { label:"Trading Volume",  value:840000,  prefix:"₹", suffix:"",   trend:"-2%",  up:false, icon:DollarSign, bg:"from-emerald-500 to-emerald-700",shadow:"shadow-emerald-200/50 dark:shadow-emerald-900/30"},
-];
+import { getAdminAnalytics } from "../../api/statsApi";
 
 function useCountUp(target, duration = 1200) {
   const [count, setCount] = useState(0);
   useEffect(() => {
     let start = 0;
-    const step = target / (duration / 16);
+    const step = Math.max(1, (target || 0) / (duration / 16));
     const timer = setInterval(() => {
       start += step;
       if (start >= target) { setCount(target); clearInterval(timer); }
@@ -54,9 +48,30 @@ function StatCard({ stat, index }) {
 }
 
 export default function StatsCards() {
+  const [metrics, setMetrics] = useState(null);
+
+  useEffect(() => {
+    async function loadStats() {
+      try {
+        const data = await getAdminAnalytics();
+        setMetrics(data?.overview || {});
+      } catch (err) {
+        console.error(err);
+      }
+    }
+    loadStats();
+  }, []);
+
+  const stats = [
+    { label: "Total Users", value: metrics?.totalUsers || 0, prefix: "", suffix: "", trend: "Live", up: true, icon: Users, bg: "from-blue-500 to-blue-700", shadow: "shadow-blue-200/50 dark:shadow-blue-900/30" },
+    { label: "Open Markets", value: metrics?.openMarketsCount || 0, prefix: "", suffix: "", trend: "Live", up: true, icon: TrendingUp, bg: "from-teal-500 to-teal-700", shadow: "shadow-teal-200/50 dark:shadow-teal-900/30" },
+    { label: "Total Predictions", value: metrics?.totalTradesCount || 0, prefix: "", suffix: "", trend: "Live", up: true, icon: Activity, bg: "from-purple-500 to-purple-700", shadow: "shadow-purple-200/50 dark:shadow-purple-900/30" },
+    { label: "Trading Volume", value: metrics?.totalVolume || 0, prefix: "₹", suffix: "", trend: "Live", up: true, icon: DollarSign, bg: "from-emerald-500 to-emerald-700", shadow: "shadow-emerald-200/50 dark:shadow-emerald-900/30" },
+  ];
+
   return (
     <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
-      {STATS.map((stat, i) => <StatCard key={i} stat={stat} index={i} />)}
+      {stats.map((stat, i) => <StatCard key={i} stat={stat} index={i} />)}
     </div>
   );
 }

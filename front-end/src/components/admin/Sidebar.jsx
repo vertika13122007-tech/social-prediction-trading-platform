@@ -6,11 +6,12 @@ import {
   BarChart3, Settings, LogOut, ChevronLeft, ChevronRight, TrendingDown
 } from "lucide-react";
 
+import { useAuth } from "../../context/AuthContext";
+
 const NAV_ITEMS = [
   { label: "Dashboard",  icon: LayoutDashboard, path: "/admin",            color: "text-blue-500",   bg: "bg-blue-50 dark:bg-blue-900/30"    },
   { label: "Markets",    icon: TrendingUp,       path: "/admin/markets",    color: "text-teal-500",   bg: "bg-teal-50 dark:bg-teal-900/30"    },
   { label: "Users",      icon: Users,            path: "/admin/users",      color: "text-purple-500", bg: "bg-purple-50 dark:bg-purple-900/30"},
-  { label: "Wallet",     icon: Wallet,           path: "/admin/wallet",     color: "text-emerald-500",bg: "bg-emerald-50 dark:bg-emerald-900/30"},
   { label: "Analytics",  icon: BarChart3,        path: "/admin/analytics",  color: "text-orange-500", bg: "bg-orange-50 dark:bg-orange-900/30"},
   { label: "Settings",   icon: Settings,         path: "/admin/settings",   color: "text-gray-500",   bg: "bg-gray-100 dark:bg-gray-800"      },
 ];
@@ -18,6 +19,12 @@ const NAV_ITEMS = [
 export default function Sidebar({ sidebarOpen, setSidebarOpen, mobileSidebarOpen, setMobileSidebarOpen }) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/", { replace: true });
+  };
 
   const isActive = (path) =>
     path === "/admin" ? location.pathname === "/admin" : location.pathname.startsWith(path);
@@ -74,7 +81,7 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen, mobileSidebarOpen
       {/* Logout */}
       <div className="px-2 pb-4 border-t border-gray-100 dark:border-gray-800 pt-3">
         <button
-          onClick={() => navigate("/")}
+          onClick={handleLogout}
           className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200 group ${collapsed ? "justify-center" : ""}`}
           title={collapsed ? "Logout" : undefined}
         >

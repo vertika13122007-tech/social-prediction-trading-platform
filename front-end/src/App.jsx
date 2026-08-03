@@ -26,6 +26,8 @@ import AdminLayout from "./components/admin/AdminLayout";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminSettings from "./pages/AdminSettings";
 import AdminMarkets from "./pages/AdminMarkets";
+import AdminUsers from "./pages/AdminUsers";
+import AdminAnalytics from "./pages/AdminAnalytics";
 
 
 function AnimatedRoutes() {
@@ -117,9 +119,8 @@ function AnimatedRoutes() {
         >
           <Route index element={<AdminDashboard />} />
           <Route path="markets"   element={<AdminMarkets />} />
-          <Route path="users"     element={<AdminDashboard />} />
-          <Route path="wallet"    element={<AdminDashboard />} />
-          <Route path="analytics" element={<AdminDashboard />} />
+          <Route path="users"     element={<AdminUsers />} />
+          <Route path="analytics" element={<AdminAnalytics />} />
           <Route path="settings"  element={<AdminSettings />} />
         </Route>
       </Routes>

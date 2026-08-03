@@ -10,7 +10,8 @@ import {
   X,
   KeyRound,
   Send,
-  ShieldCheck
+  ShieldCheck,
+  User
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
@@ -24,6 +25,7 @@ export default function Login() {
     password: "",
   });
 
+  const [role, setRole] = useState("USER"); // "USER" | "ADMIN"
   const [rememberMe, setRememberMe] = useState(false);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
@@ -77,7 +79,10 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const response = await login(formData);
+      const response = await login({
+        ...formData,
+        role,
+      });
 
       // Persist / clear remembered email
       if (rememberMe) {
@@ -114,7 +119,7 @@ export default function Login() {
     setForgotError("");
 
     try {
-      await forgotPassword(forgotEmail);
+      await forgotPassword(forgotEmail, role);
       setForgotStep("otp");
     } catch (err) {
       console.error(err);
@@ -217,9 +222,35 @@ export default function Login() {
               Welcome Back
             </h2>
 
-            <p className="text-gray-500 mb-8">
+            <p className="text-gray-500 mb-6">
               Log in to continue trading
             </p>
+
+            {/* ROLE SELECTOR */}
+            <div className="flex bg-gray-100 p-1.5 rounded-2xl mb-6 border border-gray-200/80">
+              <button
+                type="button"
+                onClick={() => setRole("USER")}
+                className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-center gap-2 ${
+                  role === "USER"
+                    ? "bg-white text-blue-600 shadow-sm"
+                    : "text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                <User size={15} /> Login as User
+              </button>
+              <button
+                type="button"
+                onClick={() => setRole("ADMIN")}
+                className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-center gap-2 ${
+                  role === "ADMIN"
+                    ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-sm"
+                    : "text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                <ShieldCheck size={15} /> Login as Admin
+              </button>
+            </div>
 
             {errors.server && (
               <div className="mb-5 p-3.5 bg-red-50 text-red-600 text-sm rounded-xl border border-red-200">

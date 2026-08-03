@@ -9,6 +9,7 @@ import {
   User,
   Mail,
   Lock,
+  ShieldCheck
 } from "lucide-react";
 
 export default function Signup() {
@@ -28,6 +29,7 @@ export default function Signup() {
   ];
 
   const [selectedAvatar, setSelectedAvatar] = useState("👩");
+  const [role, setRole] = useState("USER"); // "USER" | "ADMIN"
 
   const [formData, setFormData] = useState({
     username: "",
@@ -88,11 +90,13 @@ export default function Signup() {
             name: formData.username,
             email: formData.email,
             password: formData.password,
+            role,
         });
 
         navigate("/verify-otp", {
             state: {
                 email: formData.email,
+                role,
             },
         });
 
@@ -182,6 +186,32 @@ export default function Signup() {
             <p className="text-gray-500 mb-6">
               Join the future of prediction trading
             </p>
+
+            {/* ROLE SELECTOR */}
+            <div className="flex bg-gray-100 p-1.5 rounded-2xl mb-6 border border-gray-200/80">
+              <button
+                type="button"
+                onClick={() => setRole("USER")}
+                className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-center gap-2 ${
+                  role === "USER"
+                    ? "bg-white text-blue-600 shadow-sm"
+                    : "text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                <User size={15} /> Register as User
+              </button>
+              <button
+                type="button"
+                onClick={() => setRole("ADMIN")}
+                className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-center gap-2 ${
+                  role === "ADMIN"
+                    ? "bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-sm"
+                    : "text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                <ShieldCheck size={15} /> Register as Admin
+              </button>
+            </div>
 
             {/* AVATAR SECTION */}
             <div className="mb-6">

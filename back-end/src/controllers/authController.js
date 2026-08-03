@@ -12,6 +12,8 @@ const { publishEvent } = require("../utils/eventService");
 const registerUser = async (req,resp) =>{
     try{
         const {name,email,password} = req.body;
+        const role = req.body.role ? req.body.role.toUpperCase() : "USER";
+
         if(!name || !email || !password){
             return resp.status(400).json({
                 message:"All fields are required",
@@ -35,10 +37,11 @@ const registerUser = async (req,resp) =>{
             email,
             password,
             otp,
+            role,
             expiresAt: new Date(Date.now() + 5*60*1000)
         });
 
-        await sendOTPEmail(userName,email,otp);
+        await sendOTPEmail(userName, email, otp, role);
 
         return resp.status(200).json({
             message:"OTP sent successfully",
@@ -89,7 +92,8 @@ const verifyOTP = async (req,resp) => {
         const user = await User.create({
             name: otpRecord.name,
             email: otpRecord.email,
-            password: hashPassword
+            password: hashPassword,
+            role: otpRecord.role || "USER"
         });
 
         await walletUtils.creditWallet(
@@ -132,6 +136,7 @@ const verifyOTP = async (req,resp) => {
 const loginUser = async (req,resp) => {
     try{
         const {email,password} = req.body;
+        const requestedRole = req.body.role ? req.body.role.toUpperCase() : "USER";
 
         if( !email || !password ){
             return resp.status(400).json({
@@ -144,6 +149,16 @@ const loginUser = async (req,resp) => {
         if( !userRecord ){
             return resp.status(404).json({
                 message:"User not found"
+            });
+        }
+
+        // Validate role match
+        const userRole = (userRecord.role || "USER").toUpperCase();
+        if (userRole !== requestedRole) {
+            return resp.status(403).json({
+                message: requestedRole === "ADMIN" 
+                    ? "Access denied. This account is not registered as an Admin." 
+                    : "Access denied. This account is registered as an Admin."
             });
         }
 
@@ -172,7 +187,8 @@ const loginUser = async (req,resp) => {
             user:{
                 id: userRecord._id,
                 name: userRecord.name,
-                email:userRecord.email
+                email:userRecord.email,
+                role: userRecord.role
             }
         });
 
@@ -187,6 +203,8 @@ const loginUser = async (req,resp) => {
 const forgotPassword = async (req, resp) => {
     try {
         const { email } = req.body;
+        const requestedRole = req.body.role ? req.body.role.toUpperCase() : null;
+
         if (!email) {
             return resp.status(400).json({ message: "Email is required" });
         }
@@ -194,6 +212,15 @@ const forgotPassword = async (req, resp) => {
         const user = await User.findOne({ email });
         if (!user) {
             return resp.status(404).json({ message: "No user found with this email" });
+        }
+
+        const userRole = (user.role || "USER").toUpperCase();
+        if (requestedRole && userRole !== requestedRole) {
+            return resp.status(403).json({
+                message: requestedRole === "ADMIN" 
+                    ? "Access denied. This account is not an Admin account." 
+                    : "Access denied. This account is an Admin account."
+            });
         }
 
         const otp = generateOTP();
@@ -205,10 +232,11 @@ const forgotPassword = async (req, resp) => {
             email,
             password: "FORGOT_PASSWORD_PLACEHOLDER",
             otp,
+            role: userRole,
             expiresAt: new Date(Date.now() + 5 * 60 * 1000)
         });
 
-        await sendForgotPasswordEmail(user.name, email, otp);
+        await sendForgotPasswordEmail(user.name, email, otp, userRole);
 
         return resp.status(200).json({
             message: "Password reset OTP sent to your email"

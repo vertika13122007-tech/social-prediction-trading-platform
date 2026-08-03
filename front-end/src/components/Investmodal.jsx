@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X, TrendingUp, TrendingDown, Users, Clock, DollarSign,
@@ -15,6 +16,7 @@ function AnimatedNumber({ value }) {
 }
 
 export default function InvestModal({ trade, onClose }) {
+  const navigate = useNavigate();
   
   const [prediction, setPrediction] = useState(null); // "YES" | "NO"
   const [amount, setAmount] = useState(500);
@@ -268,7 +270,10 @@ export default function InvestModal({ trade, onClose }) {
               </div>
               <div className="flex gap-3 w-full mt-2">
                 <button
-                  onClick={onClose}
+                  onClick={() => {
+                    onClose();
+                    navigate("/portfolio");
+                  }}
                   className="flex-1 py-3 rounded-2xl border-2 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 font-semibold text-sm hover:border-blue-300 hover:text-blue-600 transition-all"
                 >
                   View Portfolio

@@ -326,14 +326,7 @@ export default function Navbar({ darkMode, setDarkMode, liveUpdatesOpen, setLive
     };
   }, [setCount]);
 
- useEffect(() => {
-    if (!onNotifications) return;
-    async function markRead() {
-      await api.patch("/notifications/read-all");
-      setCount(0);
-    }
-    markRead();
-  }, [onNotifications]);
+
 
   return (
     <nav className="sticky top-0 z-50 bg-white dark:bg-gray-950 border-b border-gray-100 dark:border-gray-800 shadow-sm">

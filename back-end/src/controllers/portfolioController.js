@@ -4,7 +4,7 @@ const portfolioSummary = async ( req , resp ) =>{
 
     try{
 
-        const portfolio = await calculatePortfolio(req.user_id);
+        const portfolio = await calculatePortfolio(req.user.id);
 
         return resp.status(200).json(portfolio);
 

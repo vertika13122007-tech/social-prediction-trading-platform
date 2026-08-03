@@ -7,7 +7,8 @@ const authMiddleware = require("../middleware/authMiddleware");
 const {
     buyShares,
     getMyPosition,
-    sellShares
+    sellShares,
+    getTradingHistory
 } = require("../controllers/tradeController");
 
 router.post(
@@ -26,6 +27,12 @@ router.get(
     "/positions",
     authMiddleware,
     getMyPosition
+);
+
+router.get(
+    "/history",
+    authMiddleware,
+    getTradingHistory
 );
 
 module.exports = router;

@@ -1,16 +1,14 @@
 const nodemailer = require("nodemailer");
 
 const transporter = nodemailer.createTransport({
-
-    service: "gmail",
+    host: process.env.SMTP_HOST,
+    port: Number(process.env.SMTP_PORT),
+    secure: false,
 
     auth: {
-
         user: process.env.EMAIL_USER,
-
         pass: process.env.EMAIL_PASS,
     },
-
 });
 
 const sendOTPEmail = async (userName, email, otp, role = "USER") => {
@@ -24,7 +22,7 @@ const sendOTPEmail = async (userName, email, otp, role = "USER") => {
             : `Hello <strong>${userName}</strong>,<br><br>Thank you for joining <strong>Live Market</strong>. Use the verification code below to complete your registration.`;
 
         await transporter.sendMail({
-            from: `"LiveMarket" <${process.env.EMAIL_USER}>`,
+            from: `"LiveMarket" <${process.env.EMAIL_FROM}>`,
             to: email,
             subject: subject,
             html: `

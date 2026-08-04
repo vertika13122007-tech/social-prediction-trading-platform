@@ -130,13 +130,18 @@ export default function AdminSettings() {
   }, []);
 
   const toggleAdminNotif = async (key) => {
-    playClickSound();
+    const nextVal = !adminNotifSettings[key];
     const updated = {
       ...adminNotifSettings,
-      [key]: !adminNotifSettings[key],
+      [key]: nextVal,
     };
     setAdminNotifSettings(updated);
     localStorage.setItem("adminNotifSettings", JSON.stringify(updated));
+
+    if (nextVal) {
+      playClickSound();
+    }
+
     try {
       await updateNotificationSettings(updated);
     } catch (err) {
@@ -322,7 +327,7 @@ export default function AdminSettings() {
                   <p className="text-[11px] text-gray-400 dark:text-gray-500 truncate">{item.desc}</p>
                 </div>
               </div>
-              <Toggle checked={adminNotifSettings[item.key] || false} onChange={() => toggleNotif(item.key)} />
+              <Toggle checked={adminNotifSettings[item.key] || false} onChange={() => toggleAdminNotif(item.key)} />
             </div>
           ))}
         </SettingsSection>

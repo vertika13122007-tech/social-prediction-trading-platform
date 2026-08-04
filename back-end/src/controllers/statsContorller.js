@@ -82,6 +82,7 @@ const getAdminAnalytics = async (req, res) => {
         // 2. Volume & Market Status metrics
         const markets = await Market.find({});
         let totalVolume = 0;
+        let openMarketVolume = 0;
         let openCount = 0;
         let closedCount = 0;
         let settledCount = 0;
@@ -92,9 +93,14 @@ const getAdminAnalytics = async (req, res) => {
             const vol = m.totalVolume || 0;
             totalVolume += vol;
 
-            if (m.status === "OPEN") openCount++;
-            else if (m.status === "CLOSED") closedCount++;
-            else if (m.status === "SETTLED") settledCount++;
+            if (m.status === "OPEN") {
+                openCount++;
+                openMarketVolume += vol;
+            } else if (m.status === "CLOSED") {
+                closedCount++;
+            } else if (m.status === "SETTLED") {
+                settledCount++;
+            }
 
             const cat = m.category || "TRENDS";
             if (!categoryStatsMap[cat]) {
@@ -113,22 +119,62 @@ const getAdminAnalytics = async (req, res) => {
         ]);
         const activeTradersCount = activeTradersAgg.length;
 
-        // 4. Monthly Volume Trend
-        const volumeTrend = await Market.aggregate([
-            {
-                $group: {
-                    _id: {
-                        month: { $month: "$createdAt" },
-                        year: { $year: "$createdAt" }
-                    },
-                    volume: { $sum: "$totalVolume" },
-                    marketsCount: { $sum: 1 }
-                }
-            },
-            { $sort: { "_id.year": 1, "_id.month": 1 } }
-        ]);
+        // 4. Open Markets Volume Data (Total amount present in each OPEN market, irrespective of creation month)
+        const openMarketsList = await Market.find({ status: "OPEN" })
+            .sort({ totalVolume: -1 })
+            .select("title totalVolume category createdAt status");
 
-        // 5. Top 5 Markets by Volume
+        let cumulativeOpenVolume = 0;
+        const openMarketsVolumeData = openMarketsList.map((m) => {
+            const vol = m.totalVolume || 0;
+            cumulativeOpenVolume += vol;
+            return {
+                name: m.title.length > 20 ? m.title.substring(0, 18) + "..." : m.title,
+                fullTitle: m.title,
+                openVolume: vol,
+                cumulativeVolume: cumulativeOpenVolume,
+                category: m.category || "TRENDS",
+                date: new Date(m.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })
+            };
+        });
+
+        // 5. Monthly Active Open Market Volume Trajectory
+        // Carries over previous open markets that have not been closed by month M
+        const now = new Date();
+        const volumeTrend = [];
+
+        for (let i = 5; i >= 0; i--) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            const monthEnd = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59, 999);
+
+            const activeOpenMarkets = markets.filter(m => {
+                const created = new Date(m.createdAt);
+                if (created > monthEnd) return false;
+
+                if (m.status === "OPEN") return true;
+
+                const updated = new Date(m.updatedAt || m.createdAt);
+                return updated > monthEnd;
+            });
+
+            const monthOpenVolume = activeOpenMarkets.reduce((acc, m) => acc + (m.totalVolume || 0), 0);
+            const monthTotalVolume = markets
+                .filter(m => new Date(m.createdAt) <= monthEnd)
+                .reduce((acc, m) => acc + (m.totalVolume || 0), 0);
+
+            volumeTrend.push({
+                _id: {
+                    month: d.getMonth() + 1,
+                    year: d.getFullYear()
+                },
+                openVolume: monthOpenVolume,
+                totalVolume: monthTotalVolume,
+                openMarketsCount: activeOpenMarkets.length,
+                marketsCount: markets.filter(m => new Date(m.createdAt) <= monthEnd).length
+            });
+        }
+
+        // 6. Top 5 Markets by Volume
         const topMarkets = await Market.find({})
             .sort({ totalVolume: -1 })
             .limit(5)
@@ -137,6 +183,7 @@ const getAdminAnalytics = async (req, res) => {
         return res.status(200).json({
             overview: {
                 totalVolume,
+                openMarketVolume,
                 totalUsers,
                 totalStandardUsers,
                 totalAdmins,
@@ -149,6 +196,7 @@ const getAdminAnalytics = async (req, res) => {
             },
             userGrowth,
             categoryBreakdown,
+            openMarketsVolumeData,
             volumeTrend,
             topMarkets,
             statusBreakdown: [

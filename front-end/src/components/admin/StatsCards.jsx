@@ -43,6 +43,11 @@ function StatCard({ stat, index }) {
       </div>
       <p className="text-[11px] text-gray-400 dark:text-gray-500 mb-0.5">{stat.label}</p>
       <p className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">{formatted}</p>
+      {stat.subText && (
+        <p className="text-[11px] font-semibold text-blue-600 dark:text-blue-400 mt-1.5 flex items-center gap-1 truncate">
+          {stat.subText}
+        </p>
+      )}
     </motion.div>
   );
 }
@@ -63,7 +68,18 @@ export default function StatsCards() {
   }, []);
 
   const stats = [
-    { label: "Total Users", value: metrics?.totalUsers || 0, prefix: "", suffix: "", trend: "Live", up: true, icon: Users, bg: "from-blue-500 to-blue-700", shadow: "shadow-blue-200/50 dark:shadow-blue-900/30" },
+    {
+      label: "Total Users",
+      value: metrics?.totalUsers || 0,
+      prefix: "",
+      suffix: "",
+      subText: `👤 ${metrics?.totalStandardUsers || 0} Traders · 🛡️ ${metrics?.totalAdmins || 0} Admins`,
+      trend: "Live",
+      up: true,
+      icon: Users,
+      bg: "from-blue-500 to-blue-700",
+      shadow: "shadow-blue-200/50 dark:shadow-blue-900/30"
+    },
     { label: "Open Markets", value: metrics?.openMarketsCount || 0, prefix: "", suffix: "", trend: "Live", up: true, icon: TrendingUp, bg: "from-teal-500 to-teal-700", shadow: "shadow-teal-200/50 dark:shadow-teal-900/30" },
     { label: "Total Predictions", value: metrics?.totalTradesCount || 0, prefix: "", suffix: "", trend: "Live", up: true, icon: Activity, bg: "from-purple-500 to-purple-700", shadow: "shadow-purple-200/50 dark:shadow-purple-900/30" },
     { label: "Trading Volume", value: metrics?.totalVolume || 0, prefix: "₹", suffix: "", trend: "Live", up: true, icon: DollarSign, bg: "from-emerald-500 to-emerald-700", shadow: "shadow-emerald-200/50 dark:shadow-emerald-900/30" },

@@ -30,8 +30,9 @@ export default function AdminCharts() {
         const rawTrend = data?.volumeTrend || [];
         if (rawTrend.length > 0) {
           setVolumeData(rawTrend.map(t => ({
-            day: `${MONTH_NAMES[(t._id?.month || 1) - 1]} ${t._id?.year || ""}`,
-            volume: t.volume || 0
+            day: `${MONTH_NAMES[(t._id?.month || 1) - 1]}`,
+            volume: t.openVolume !== undefined ? t.openVolume : (t.totalVolume || t.volume || 0),
+            fullTitle: `Open Markets Volume (${MONTH_NAMES[(t._id?.month || 1) - 1]} ${t._id?.year || ""})`
           })));
         } else {
           setVolumeData([
@@ -39,7 +40,7 @@ export default function AdminCharts() {
             { day: "Feb", volume: 32000 },
             { day: "Mar", volume: 48000 },
             { day: "Apr", volume: 75000 },
-            { day: "May", volume: data?.overview?.totalVolume || 98000 },
+            { day: "May", volume: data?.overview?.openMarketVolume || 98000 },
           ]);
         }
 
@@ -63,10 +64,12 @@ export default function AdminCharts() {
       <div className="lg:col-span-2 bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5 shadow-sm hover:shadow-lg transition-all duration-300">
         <div className="flex items-center justify-between mb-5">
           <div>
-            <h3 className="font-bold text-gray-900 dark:text-white text-sm">Trading Volume Trajectory</h3>
-            <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Platform volume trend</p>
+            <h3 className="font-bold text-gray-900 dark:text-white text-sm">Open Markets Volume Trajectory</h3>
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Total amount in active unclosed open markets</p>
           </div>
-          <span className="text-xs font-semibold px-3 py-1 rounded-full bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500 text-white">Live Data</span>
+          <span className="text-xs font-semibold px-3 py-1 rounded-full bg-gradient-to-r from-blue-600 via-cyan-500 to-teal-500 text-white">
+            Open Markets Volume
+          </span>
         </div>
         <ResponsiveContainer width="100%" height={200}>
           <AreaChart data={volumeData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>

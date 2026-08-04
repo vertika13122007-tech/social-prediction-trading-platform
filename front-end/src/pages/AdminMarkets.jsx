@@ -110,7 +110,7 @@ export default function AdminMarkets() {
   const getActiveMarketsList = () => {
     if (activeTab === "OPEN") return openMarkets;
     if (activeTab === "CLOSED") return closedMarkets;
-    if (activeTab === "SETTLED") return settledMarkets.slice(0, 10);
+    if (activeTab === "SETTLED") return settledMarkets;
     return [];
   };
 
@@ -143,11 +143,11 @@ export default function AdminMarkets() {
       </div>
 
       {/* Category Tabs: Open Markets, Closed Markets, Settled Markets */}
-      <div className="flex bg-gray-100 dark:bg-gray-900 p-1.5 rounded-2xl border border-gray-200/80 dark:border-gray-800 max-w-2xl">
+      <div className="w-full flex bg-gray-100 dark:bg-gray-900 p-1.5 rounded-2xl border border-gray-200/80 dark:border-gray-800">
         {[
           { key: "OPEN", label: "Open Markets", count: openMarkets.length, color: "text-emerald-600 dark:text-emerald-400" },
           { key: "CLOSED", label: "Closed Markets", count: closedMarkets.length, color: "text-red-500 dark:text-red-400" },
-          { key: "SETTLED", label: "Settled Markets", count: Math.min(10, settledMarkets.length), color: "text-blue-600 dark:text-blue-400" },
+          { key: "SETTLED", label: "Settled Markets", count: settledMarkets.length, color: "text-blue-600 dark:text-blue-400" },
         ].map((tab) => (
           <button
             key={tab.key}

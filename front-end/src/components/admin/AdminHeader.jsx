@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { Search, Moon, Sun, RefreshCw, Plus, Menu } from "lucide-react";
 import { motion } from "framer-motion";
+import { useAuth } from "../../context/AuthContext";
 
 export default function AdminHeader({ darkMode, setDarkMode, onMenuClick, onCreateMarketClick, onRefresh }) {
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState("");
+  const { user } = useAuth();
 
   const handleRefresh = () => {
     setRefreshing(true);
@@ -31,7 +33,7 @@ export default function AdminHeader({ darkMode, setDarkMode, onMenuClick, onCrea
         {/* Title */}
         <div className="hidden sm:block">
           <h1 className="font-bold text-gray-900 dark:text-white text-base leading-tight">Admin Panel</h1>
-          <p className="text-xs text-gray-400 dark:text-gray-500">Welcome back, Admin 👋</p>
+          <p className="text-xs text-gray-400 dark:text-gray-500">Welcome back, {user?.name || "Admin"} 👋</p>
         </div>
 
         <div className="flex items-center gap-2 ml-auto shrink-0">

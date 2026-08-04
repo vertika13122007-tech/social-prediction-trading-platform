@@ -52,21 +52,23 @@ export default function AdminAnalytics() {
   const volumeTrendRaw = data?.volumeTrend || [];
   const userGrowthRaw = data?.userGrowth || [];
 
-  // Format Volume Trend Line Chart Data
+  const openMarketsVolumeData = data?.openMarketsVolumeData || [];
+
+  // Format Volume Chart Data for Open Markets Trajectory (carrying over unclosed open markets each month)
   const volumeChartData = volumeTrendRaw.length > 0
     ? volumeTrendRaw.map((item) => ({
-        name: `${MONTH_NAMES[(item._id?.month || 1) - 1]} ${item._id?.year || ""}`,
-        volume: item.volume || 0,
-        markets: item.marketsCount || 0,
+        name: `${MONTH_NAMES[(item._id?.month || 1) - 1]}`,
+        openVolume: item.openVolume !== undefined ? item.openVolume : 0,
+        totalVolume: item.totalVolume !== undefined ? item.totalVolume : 0,
+        fullTitle: `Active Open Markets Pool (${MONTH_NAMES[(item._id?.month || 1) - 1]} ${item._id?.year || ""})`,
+        markets: item.openMarketsCount || 0
       }))
-    : [
-        { name: "Jan", volume: 12000, markets: 2 },
-        { name: "Feb", volume: 25000, markets: 5 },
-        { name: "Mar", volume: 42000, markets: 8 },
-        { name: "Apr", volume: 68000, markets: 12 },
-        { name: "May", volume: 95000, markets: 18 },
-        { name: "Jun", volume: overview.totalVolume || 145000, markets: overview.totalMarketsCount || 24 },
-      ];
+    : (openMarketsVolumeData.length > 0
+        ? openMarketsVolumeData
+        : [
+            { name: "Current Pool", openVolume: overview.openMarketVolume || 0, fullTitle: "All Active Open Markets" },
+          ]
+      );
 
   // Format Category Breakdown for Pie & Histogram
   const categoryChartData = categoryBreakdown.map((cat) => ({
@@ -86,14 +88,21 @@ export default function AdminAnalytics() {
   // Custom Recharts Tooltip
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
+      const dataItem = payload[0]?.payload;
       return (
-        <div className="bg-gray-900 text-white text-xs p-3 rounded-xl shadow-xl border border-gray-800 space-y-1">
-          <p className="font-bold text-gray-300">{label}</p>
+        <div className="bg-gray-900 text-white text-xs p-3.5 rounded-xl shadow-xl border border-gray-800 space-y-1.5 max-w-xs">
+          <p className="font-bold text-gray-200">{dataItem?.fullTitle || label}</p>
+          {dataItem?.category && (
+            <p className="text-[10px] text-gray-400 font-semibold uppercase">Category: {dataItem.category}</p>
+          )}
           {payload.map((entry, index) => (
-            <p key={index} className="font-semibold" style={{ color: entry.color || "#38BDF8" }}>
-              {entry.name}: {typeof entry.value === "number" && entry.name.toLowerCase().includes("volume") ? `₹${fmtMoney(entry.value)}` : entry.value}
+            <p key={index} className="font-bold" style={{ color: entry.color || "#10B981" }}>
+              {entry.name}: ₹{fmtMoney(entry.value)}
             </p>
           ))}
+          {dataItem?.date && (
+            <p className="text-[10px] text-gray-500">Created: {dataItem.date}</p>
+          )}
         </div>
       );
     }
@@ -149,16 +158,16 @@ export default function AdminAnalytics() {
               className="bg-white dark:bg-gray-900 rounded-2xl p-5 border border-gray-100 dark:border-gray-800 shadow-sm relative overflow-hidden group"
             >
               <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total Volume</span>
+                <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Open Markets Pool</span>
                 <div className="w-9 h-9 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
                   <DollarSign size={18} />
                 </div>
               </div>
               <p className="text-2xl font-extrabold text-gray-900 dark:text-white">
-                ₹{fmtMoney(overview.totalVolume)}
+                ₹{fmtMoney(overview.openMarketVolume !== undefined ? overview.openMarketVolume : overview.totalVolume)}
               </p>
               <p className="text-[11px] text-emerald-600 dark:text-emerald-400 mt-1 font-semibold flex items-center gap-1">
-                <ArrowUpRight size={13} /> Active pool liquidity
+                <ArrowUpRight size={13} /> ₹{fmtMoney(overview.totalVolume)} total all-time
               </p>
               <div className="h-1 w-full bg-gradient-to-r from-emerald-500 to-teal-500 absolute bottom-0 left-0" />
             </motion.div>
@@ -230,20 +239,20 @@ export default function AdminAnalytics() {
             </motion.div>
           </div>
 
-          {/* ════ GRAPH 1: LINE & AREA GRAPH (TOTAL VOLUME TRAJECTORY) ════ */}
+          {/* ════ GRAPH 1: LINE & AREA GRAPH (OPEN MARKET VOLUME TRAJECTORY) ════ */}
           <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-6 shadow-sm">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
               <div>
                 <h3 className="font-bold text-gray-900 dark:text-white text-base flex items-center gap-2">
                   <LineIcon size={18} className="text-emerald-500" />
-                  Total Volume Trajectory (Line & Area Chart)
+                  Open Markets Volume Trajectory (Line & Area Chart)
                 </h3>
                 <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
-                  Platform volume growth and prediction liquidity trends over time
+                  Total amount present in active open prediction markets over time
                 </p>
               </div>
-              <span className="px-3 py-1 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 text-xs font-extrabold self-start sm:self-auto">
-                ₹{fmtMoney(overview.totalVolume)} Total Liquidity
+              <span className="px-3 py-1 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 text-xs font-extrabold self-start sm:self-auto flex items-center gap-1">
+                🪙 ₹{fmtMoney(overview.openMarketVolume !== undefined ? overview.openMarketVolume : overview.totalVolume)} Open Market Pool
               </span>
             </div>
 
@@ -260,7 +269,7 @@ export default function AdminAnalytics() {
                   <XAxis dataKey="name" stroke="#9CA3AF" fontSize={11} tickLine={false} axisLine={false} />
                   <YAxis stroke="#9CA3AF" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => `₹${v >= 1000 ? `${(v/1000).toFixed(0)}K` : v}`} />
                   <Tooltip content={<CustomTooltip />} />
-                  <Area type="monotone" dataKey="volume" name="Total Volume" stroke="#10B981" strokeWidth={3} fillOpacity={1} fill="url(#volumeGradient)" />
+                  <Area type="monotone" dataKey="openVolume" name="Open Market Volume" stroke="#10B981" strokeWidth={3} fillOpacity={1} fill="url(#volumeGradient)" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>

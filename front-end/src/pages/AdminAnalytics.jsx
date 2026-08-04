@@ -150,7 +150,7 @@ export default function AdminAnalytics() {
         <div className="space-y-6">
 
           {/* ════ OVERVIEW STAT CARDS ════ */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" data-no-sound="true">
             {/* Total Volume */}
             <motion.div
               initial={{ opacity: 0, y: 12 }}
@@ -309,6 +309,7 @@ export default function AdminAnalytics() {
                         outerRadius={90}
                         paddingAngle={4}
                         dataKey="volume"
+                        isAnimationActive={false}
                       >
                         {(categoryChartData.length > 0 ? categoryChartData : [
                           { color: "#3B82F6" }, { color: "#8B5CF6" }, { color: "#F59E0B" }, { color: "#14B8A6" }
@@ -316,7 +317,7 @@ export default function AdminAnalytics() {
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
-                      <Tooltip content={<CustomTooltip />} />
+                      <Tooltip content={<CustomTooltip />} isAnimationActive={false} />
                       <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: "11px" }} />
                     </PieChart>
                   </ResponsiveContainer>

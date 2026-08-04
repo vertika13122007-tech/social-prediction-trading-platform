@@ -98,10 +98,10 @@ export default function AdminCharts() {
         </div>
         <ResponsiveContainer width="100%" height={160}>
           <PieChart>
-            <Pie data={pieData} cx="50%" cy="50%" innerRadius={45} outerRadius={70} paddingAngle={4} dataKey="value">
+            <Pie data={pieData} cx="50%" cy="50%" innerRadius={45} outerRadius={70} paddingAngle={4} dataKey="value" isAnimationActive={false}>
               {pieData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
             </Pie>
-            <Tooltip formatter={(v, n) => [`${v} markets`, n]} />
+            <Tooltip formatter={(v, n) => [`${v} markets`, n]} isAnimationActive={false} />
           </PieChart>
         </ResponsiveContainer>
         <div className="space-y-2 mt-2">

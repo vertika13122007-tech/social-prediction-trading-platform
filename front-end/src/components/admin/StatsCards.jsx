@@ -86,7 +86,7 @@ export default function StatsCards() {
   ];
 
   return (
-    <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 xl:grid-cols-4 gap-4" data-no-sound="true">
       {stats.map((stat, i) => <StatCard key={i} stat={stat} index={i} />)}
     </div>
   );

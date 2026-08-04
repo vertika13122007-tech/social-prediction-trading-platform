@@ -349,9 +349,9 @@ export default function Wallet() {
           )}
 
           {/* ── Stats row ── */}
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-3 gap-3" data-no-sound="true">
             {/* Total Invested */}
-            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-4 text-center shadow-sm hover:shadow-lg dark:hover:shadow-gray-900/60 hover:-translate-y-1 hover:scale-[1.01] transition-all duration-300 group">
+            <div data-no-sound="true" className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-4 text-center shadow-sm hover:shadow-lg dark:hover:shadow-gray-900/60 hover:-translate-y-1 hover:scale-[1.01] transition-all duration-300 group">
               <div className="w-9 h-9 rounded-xl bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform duration-300">
                 <TrendingDown size={18} className="text-orange-500" />
               </div>
@@ -362,7 +362,7 @@ export default function Wallet() {
             </div>
 
             {/* Profit / Loss */}
-            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-4 text-center shadow-sm hover:shadow-lg dark:hover:shadow-gray-900/60 hover:-translate-y-1 hover:scale-[1.01] transition-all duration-300 group">
+            <div data-no-sound="true" className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-4 text-center shadow-sm hover:shadow-lg dark:hover:shadow-gray-900/60 hover:-translate-y-1 hover:scale-[1.01] transition-all duration-300 group">
               <div className={`w-9 h-9 rounded-xl ${totalEarned >= 0 ? "bg-emerald-100 dark:bg-emerald-900/30" : "bg-red-100 dark:bg-red-900/30"} flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform duration-300`}>
                 {totalEarned >= 0 ? (
                   <TrendingUp size={18} className="text-emerald-500" />
@@ -377,7 +377,7 @@ export default function Wallet() {
             </div>
 
             {/* Win Rate */}
-            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-4 text-center shadow-sm hover:shadow-lg dark:hover:shadow-gray-900/60 hover:-translate-y-1 hover:scale-[1.01] transition-all duration-300 group">
+            <div data-no-sound="true" className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-4 text-center shadow-sm hover:shadow-lg dark:hover:shadow-gray-900/60 hover:-translate-y-1 hover:scale-[1.01] transition-all duration-300 group">
               <div className="w-9 h-9 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform duration-300">
                 <BarChart3 size={18} className="text-blue-500" />
               </div>

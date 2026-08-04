@@ -135,9 +135,30 @@ function GlobalClickListener() {
   useEffect(() => {
     const handleGlobalClick = (e) => {
       const target = e.target.closest("button, a, [role='button'], input[type='submit'], input[type='button'], .cursor-pointer");
-      if (target) {
-        playClickSound();
+      if (!target) return;
+
+      // Skip elements explicitly marked with data-no-sound="true" or .no-sound
+      if (target.closest("[data-no-sound='true'], .no-sound")) return;
+
+      // Skip static text inputs/selects that are focused without button actions
+      if (["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName) && !["submit", "button", "checkbox", "radio"].includes(target.type)) {
+        return;
       }
+
+      // Skip static display cards or static container items
+      if (target.closest(".static-card, [data-static='true']")) return;
+
+      // Verify if the element performs navigation, opens a modal/tab/drawer/menu, or executes an action
+      const isLink = target.tagName === "A" && target.hasAttribute("href") && target.getAttribute("href") !== "#";
+      const isButton = target.tagName === "BUTTON" || target.type === "submit" || target.type === "button";
+      const hasActionRole = target.getAttribute("role") === "button" || target.hasAttribute("data-action");
+
+      // Non-button/link elements without click action attributes are ignored
+      if (!isLink && !isButton && !hasActionRole) {
+        return;
+      }
+
+      playClickSound();
     };
 
     document.addEventListener("click", handleGlobalClick, { capture: true });

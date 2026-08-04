@@ -46,10 +46,14 @@ const registerUser = async (req,resp) =>{
         return resp.status(200).json({
             message:"OTP sent successfully",
         });
-    }catch(error){
-        console.error(error);
-        resp.status(500).json({
-            message: "Server Error"
+    }catch (error) {
+        console.error("Register Error:", error);
+
+        return resp.status(500).json({
+            success: false,
+            error: error.message,
+            code: error.code,
+            stack: error.stack
         });
     }
 };

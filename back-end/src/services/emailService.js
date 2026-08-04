@@ -1,15 +1,12 @@
-const nodemailer = require("nodemailer");
+const brevo = require("@getbrevo/brevo");
 
-const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT),
-    secure: false,
+const apiInstance = new brevo.TransactionalEmailsApi();
 
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-    },
-});
+apiInstance.setApiKey(
+    brevo.TransactionalEmailsApiApiKeys.apiKey,
+    process.env.BREVO_API_KEY
+);
+
 
 const sendOTPEmail = async (userName, email, otp, role = "USER") => {
     try {
@@ -21,11 +18,8 @@ const sendOTPEmail = async (userName, email, otp, role = "USER") => {
             ? `Hello Administrator <strong>${userName}</strong>,<br><br>Thank you for joining <strong>Live Market</strong> as an Administrator. Use the verification code below to complete your admin account registration.`
             : `Hello <strong>${userName}</strong>,<br><br>Thank you for joining <strong>Live Market</strong>. Use the verification code below to complete your registration.`;
 
-        await transporter.sendMail({
-            from: `"LiveMarket" <${process.env.EMAIL_FROM}>`,
-            to: email,
-            subject: subject,
-            html: `
+        
+        const html =`
             <!DOCTYPE html>
             <html>
             <head>
@@ -171,7 +165,26 @@ const sendOTPEmail = async (userName, email, otp, role = "USER") => {
             </body>
             </html>
         `
-        });
+
+        const sendSmtpEmail = new brevo.SendSmtpEmail();
+
+        sendSmtpEmail.sender = {
+            email: process.env.EMAIL_FROM,
+            name: "LiveMarket",
+        };
+
+        sendSmtpEmail.to = [
+            {
+                email: email,
+                name: userName,
+            },
+        ];
+
+        sendSmtpEmail.subject = subject;
+
+        sendSmtpEmail.htmlContent = html;
+
+        await apiInstance.sendTransacEmail(sendSmtpEmail);
 
         console.log("Email sent");
         
@@ -191,11 +204,8 @@ const sendForgotPasswordEmail = async (userName, email, otp, role = "USER") => {
             ? `Hello Administrator <strong>${userName}</strong>,<br><br>We received a password reset request for your Administrator account at <strong>Live Market</strong>. Use the verification code below to reset your admin password.`
             : `Hello <strong>${userName}</strong>,<br><br>We received a request to reset your password for <strong>Live Market</strong>. Use the verification code below to reset your password.`;
 
-        await transporter.sendMail({
-        from: `"LiveMarket" <${process.env.EMAIL_USER}>`,
-        to: email,
-        subject: subject,
-        html: `
+        
+        const html = `
             <!DOCTYPE html>
             <html>
             <head>
@@ -341,7 +351,27 @@ const sendForgotPasswordEmail = async (userName, email, otp, role = "USER") => {
             </body>
             </html>
         `
-        });
+        const sendSmtpEmail = new brevo.SendSmtpEmail();
+
+        sendSmtpEmail.sender = {
+            email: process.env.EMAIL_FROM,
+            name: "LiveMarket",
+        };
+
+        sendSmtpEmail.to = [
+            {
+                email: email,
+                name: userName,
+            },
+        ];
+
+        sendSmtpEmail.subject = subject;
+
+        sendSmtpEmail.htmlContent = html;
+
+        await apiInstance.sendTransacEmail(sendSmtpEmail);
+
+        console.log("Forgot password email sent");
 
         console.log("Forgot password email sent");
         

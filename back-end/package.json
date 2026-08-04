@@ -12,6 +12,7 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@getbrevo/brevo": "^6.0.2",
     "@google/genai": "^2.12.0",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",

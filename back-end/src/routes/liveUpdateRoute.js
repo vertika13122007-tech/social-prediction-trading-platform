@@ -4,7 +4,7 @@ const router = express.Router();
 
 const {
     getLiveUpdates
-} = require("../controllers/liveUpdateController");
+} = require("../controllers/LiveUpdateController");
 
 router.get("/", getLiveUpdates);
 

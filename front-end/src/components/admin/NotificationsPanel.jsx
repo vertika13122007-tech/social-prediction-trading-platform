@@ -1,57 +1,70 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Bell, Clock, AlertCircle, Wallet, Flag, X } from "lucide-react";
-import { getAdminMyMarkets } from "../../api/marketApi";
+import { getNotifications, markRead, markAllRead, deleteNotification } from "../../api/notificationApi";
 
 export default function NotificationsPanel() {
   const [alerts, setAlerts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchAlerts = async () => {
+    try {
+      const data = await getNotifications();
+      const formatted = (data || []).map((n) => {
+        const titleLower = (n.title || "").toLowerCase();
+        const isClosed = titleLower.includes("closed") || titleLower.includes("pending");
+        const isOpen = titleLower.includes("open") || titleLower.includes("active");
+
+        return {
+          id: n._id,
+          title: n.title,
+          text: n.message,
+          read: n.read,
+          type: n.type,
+          icon: isClosed ? <AlertCircle size={13} /> : isOpen ? <Clock size={13} /> : <Bell size={13} />,
+          bg: isClosed ? "bg-orange-100 dark:bg-orange-900/30" : isOpen ? "bg-blue-100 dark:bg-blue-900/30" : "bg-emerald-100 dark:bg-emerald-900/30",
+          color: isClosed ? "text-orange-500" : isOpen ? "text-blue-500" : "text-emerald-500",
+        };
+      });
+      setAlerts(formatted);
+    } catch (err) {
+      console.error("Failed to load notifications:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    async function loadAlerts() {
-      try {
-        const data = await getAdminMyMarkets();
-        const generated = [];
-
-        if (data.closedMarkets?.length > 0) {
-          generated.push({
-            id: "closed",
-            icon: <AlertCircle size={13} />,
-            bg: "bg-orange-100 dark:bg-orange-900/30",
-            color: "text-orange-500",
-            text: `${data.closedMarkets.length} market(s) closed and pending winner declaration`,
-            read: false,
-          });
-        }
-
-        if (data.openMarkets?.length > 0) {
-          generated.push({
-            id: "open",
-            icon: <Clock size={13} />,
-            bg: "bg-blue-100 dark:bg-blue-900/30",
-            color: "text-blue-500",
-            text: `You have ${data.openMarkets.length} active prediction market(s) open`,
-            read: false,
-          });
-        }
-
-        if (data.settledMarkets?.length > 0) {
-          generated.push({
-            id: "settled",
-            icon: <Bell size={13} />,
-            bg: "bg-emerald-100 dark:bg-emerald-900/30",
-            color: "text-emerald-500",
-            text: `${data.settledMarkets.length} market(s) successfully settled`,
-            read: true,
-          });
-        }
-
-        setAlerts(generated);
-      } catch (err) {
-        console.error(err);
-      }
-    }
-    loadAlerts();
+    fetchAlerts();
   }, []);
+
+  const handleMarkAllRead = async () => {
+    try {
+      setAlerts((prev) => prev.map((x) => ({ ...x, read: true })));
+      await markAllRead();
+    } catch (err) {
+      console.error("Failed to mark all read:", err);
+    }
+  };
+
+  const handleMarkItemRead = async (id) => {
+    try {
+      setAlerts((prev) => prev.map((x) => (x.id === id ? { ...x, read: true } : x)));
+      await markRead(id);
+    } catch (err) {
+      console.error("Failed to mark item read:", err);
+    }
+  };
+
+  const handleDeleteItem = async (id, e) => {
+    e.stopPropagation();
+    try {
+      setAlerts((prev) => prev.filter((x) => x.id !== id));
+      await deleteNotification(id);
+    } catch (err) {
+      console.error("Failed to delete notification:", err);
+    }
+  };
 
   const unread = alerts.filter((a) => !a.read).length;
 
@@ -66,12 +79,14 @@ export default function NotificationsPanel() {
             </span>
           )}
         </div>
-        <button
-          onClick={() => setAlerts((a) => a.map((x) => ({ ...x, read: true })))}
-          className="text-[11px] text-blue-600 dark:text-blue-400 font-semibold hover:underline"
-        >
-          Mark all read
-        </button>
+        {unread > 0 && (
+          <button
+            onClick={handleMarkAllRead}
+            className="text-[11px] text-blue-600 dark:text-blue-400 font-semibold hover:underline"
+          >
+            Mark all read
+          </button>
+        )}
       </div>
       <div className="divide-y divide-gray-50 dark:divide-gray-800">
         {alerts.map((a, i) => (
@@ -80,7 +95,8 @@ export default function NotificationsPanel() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: i * 0.06 }}
-            className={`flex items-start gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors group ${
+            onClick={() => !a.read && handleMarkItemRead(a.id)}
+            className={`flex items-start gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors group cursor-pointer ${
               !a.read ? "bg-blue-50/30 dark:bg-blue-950/10" : ""
             }`}
           >
@@ -94,14 +110,15 @@ export default function NotificationsPanel() {
               {!a.read && <span className="inline-block w-1.5 h-1.5 rounded-full bg-blue-500 mt-1" />}
             </div>
             <button
-              onClick={() => setAlerts((prev) => prev.map((x, xi) => (xi === i ? { ...x, read: true } : x)))}
+              onClick={(e) => handleDeleteItem(a.id, e)}
               className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-gray-500 transition-all p-0.5"
+              title="Dismiss notification"
             >
               <X size={11} />
             </button>
           </motion.div>
         ))}
-        {alerts.length === 0 && (
+        {alerts.length === 0 && !loading && (
           <div className="text-center py-8 text-gray-400">
             <p className="text-xs">No active alerts</p>
           </div>

@@ -56,6 +56,12 @@ Keeping admin and trading logic in separate schemas and separate frontends was a
 
 ---
 
+## Deployed Link
+
+(https://social-prediction-trading-platform.onrender.com/)
+
+---
+
 ## Key Features
 
 **Auth & accounts**

@@ -1,12 +1,10 @@
-const brevo = require("@getbrevo/brevo");
+const { BrevoClient } = require("@getbrevo/brevo");
 
-const apiInstance = new brevo.TransactionalEmailsApi();
+const brevo = new BrevoClient({
+    apiKey: process.env.BREVO_API_KEY,
+});
 
-apiInstance.setApiKey(
-    brevo.TransactionalEmailsApiApiKeys.apiKey,
-    process.env.BREVO_API_KEY
-);
-
+console.dir(brevo.transactionalEmails.sendTransacEmail, { depth: null });
 
 const sendOTPEmail = async (userName, email, otp, role = "USER") => {
     try {
@@ -166,25 +164,26 @@ const sendOTPEmail = async (userName, email, otp, role = "USER") => {
             </html>
         `
 
-        const sendSmtpEmail = new brevo.SendSmtpEmail();
+        try {
+            const response = await brevo.transactionalEmails.sendTransacEmail({
+                sender: {
+                    email: process.env.EMAIL_FROM,
+                    name: "LiveMarket",
+                },
+                to: [
+                    {
+                        email,
+                        name: userName,
+                    },
+                ],
+                subject,
+                htmlContent: html,
+            });
 
-        sendSmtpEmail.sender = {
-            email: process.env.EMAIL_FROM,
-            name: "LiveMarket",
-        };
-
-        sendSmtpEmail.to = [
-            {
-                email: email,
-                name: userName,
-            },
-        ];
-
-        sendSmtpEmail.subject = subject;
-
-        sendSmtpEmail.htmlContent = html;
-
-        await apiInstance.sendTransacEmail(sendSmtpEmail);
+            console.log(response);
+        } catch (err) {
+            console.error(err);
+        }
 
         console.log("Email sent");
         
@@ -351,27 +350,41 @@ const sendForgotPasswordEmail = async (userName, email, otp, role = "USER") => {
             </body>
             </html>
         `
-        const sendSmtpEmail = new brevo.SendSmtpEmail();
+        try {
+            const response = await brevo.transactionalEmails.sendTransacEmail({
+                sender: {
+                    email: process.env.EMAIL_FROM,
+                    name: "LiveMarket",
+                },
+                to: [
+                    {
+                        email,
+                        name: userName,
+                    },
+                ],
+                subject,
+                htmlContent: html,
+            });
 
-        sendSmtpEmail.sender = {
-            email: process.env.EMAIL_FROM,
-            name: "LiveMarket",
-        };
+            console.log("BREVO SUCCESS");
+            console.dir(response, { depth: null });
 
-        sendSmtpEmail.to = [
-            {
-                email: email,
-                name: userName,
-            },
-        ];
+            console.log(response);
+        } catch (error) {
+            console.error("========== BREVO ERROR ==========");
 
-        sendSmtpEmail.subject = subject;
+            console.error("Message:", error.message);
 
-        sendSmtpEmail.htmlContent = html;
+            console.error("Name:", error.name);
 
-        await apiInstance.sendTransacEmail(sendSmtpEmail);
+            console.error("Status:", error.statusCode || error.status);
 
-        console.log("Forgot password email sent");
+            console.error("Response:");
+
+            console.dir(error, { depth: null });
+
+            throw error;
+        }
 
         console.log("Forgot password email sent");
         

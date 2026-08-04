@@ -62,3 +62,7 @@ const getWalletAnalytics = async (req, res) => {
     }
 
 };
+
+module.exports = {
+    getWalletAnalytics,
+};

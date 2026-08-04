@@ -18,12 +18,12 @@ const userRoute = require("./src/routes/userRouter");
 const notificationRoute = require("./src/routes/notificationRoute");
 const liveUpdateRoute = require("./src/routes/liveUpdateRoute");
 const walletStatsRoute = require("./src/routes/walletStatsRoute");
-const walletAnalysisRoute = require("./src/controllers/walletAnalyticsController");
+const walletAnalysisRoute = require("./src/routes/walletAnalysisRoute");
 
 const app = express();
 
 app.use(cors({
-    origin: "http://localhost:5173"
+    origin: "https://social-prediction-trading-platform.onrender.com"
 }));
 
 connectDB();

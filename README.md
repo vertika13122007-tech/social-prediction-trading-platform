@@ -106,10 +106,6 @@ Keeping admin and trading logic in separate schemas and separate frontends was a
 
 ## Screenshots
 
-## Screenshots
-
-## Screenshots
-
 | Home                                                  | Portfolio                                                            |
 | ----------------------------------------------------- | -------------------------------------------------------------------- |
 | [![Home](screenshots/home.png)](screenshots/home.png) | [![Portfolio](screenshots/portfolio.png)](screenshots/portfolio.png) |

@@ -106,19 +106,21 @@ Keeping admin and trading logic in separate schemas and separate frontends was a
 
 ## Screenshots
 
-Drop images into `docs/screenshots/` and they'll render here.
+## Screenshots
 
-| Home | Portfolio |
-|---|---|
-| ![Home](docs/screenshots/home.png) | ![Portfolio](docs/screenshots/portfolio.png) |
+## Screenshots
 
-| Trading Modal | Admin Dashboard |
-|---|---|
-| ![Trading](docs/screenshots/trading.png) | ![Admin](docs/screenshots/admin-dashboard.png) |
+| Home                                                  | Portfolio                                                            |
+| ----------------------------------------------------- | -------------------------------------------------------------------- |
+| [![Home](screenshots/home.png)](screenshots/home.png) | [![Portfolio](screenshots/portfolio.png)](screenshots/portfolio.png) |
 
-| Leaderboard | Wallet |
-|---|---|
-| ![Leaderboard](docs/screenshots/leaderboard.png) | ![Wallet](docs/screenshots/wallet.png) |
+| Trading                                                        | Admin Dashboard                                                    |
+| -------------------------------------------------------------- | ------------------------------------------------------------------ |
+| [![Trading](screenshots/trading.png)](screenshots/trading.png) | [![Admin Dashboard](screenshots/admin.png)](screenshots/admin.png) |
+
+| Leaderboard                                                                | Wallet                                                      |
+| -------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| [![Leaderboard](screenshots/leaderboard.png)](screenshots/leaderboard.png) | [![Wallet](screenshots/wallet.png)](screenshots/wallet.png) |
 
 ---
 
